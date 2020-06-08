@@ -30,7 +30,8 @@ def getContent(driver, seed):
         if i is not None:
             try:
                 driver.get(i)
-                contentsList.append(str(driver.find_element_by_tag_name("body")))
+                contentsList.append(str(driver.find_element_by_tag_name(
+                    "body").text))
 
             except Exception as e:
                 contentsList.append(e.args)
@@ -40,6 +41,13 @@ def getContent(driver, seed):
     return contentsList
 
 
+# filter for the crawler
+# source       = the source of outlinks
+# linkslist    = outlinks from the source
+# contentsList = contents of the outlinks
+# withinDomain = whether to crawl outlinks of same domain with the source
+# minKeywords  = minimum number keywords required to be in the content
+# keywords     = words / phrase / sentence need to be present in the content
 def crawlingFilter(source, linksList, contentsList, withinDomain,
                    minKeywords, keywords = None):
 
@@ -91,6 +99,11 @@ def crawlingFilter(source, linksList, contentsList, withinDomain,
     return newLinksList, newContentsList
 
 
+# Saving output in csv format
+# mainSource = list of all source of outlinks
+# mainTarget = list of all outlinks
+# mainDepth  = depth position of the target / outlinks
+# filename    = filename of our outputs
 def saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename):
 
     assert len(mainSource) == len(mainTarget) == \
@@ -102,7 +115,7 @@ def saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename):
         "target": mainTarget,
         "targetcontent": mainContent})
 
-    df.to_csv(filename, index=False, sep='\t')
+    df.to_csv(filename, index=False, sep=',')
     del df
 
 
@@ -111,6 +124,14 @@ def loadBots():
     pass
 
 
+# Main function for web crawling
+# seeds        = list of seed links
+# depth        = how deep recursively the crawl will be
+# driver       = webdriver bots
+# withinDomain = whether it'll crawl out-links within the same domain
+# minKeywords  = how many keywords need to match the content
+# keywords     = keywords that will filter the crawl
+# filename      = the filename of its output
 def webCrawler(seeds, depth, driver, withinDomain,
                minKeywords, keywords, filename):
 
@@ -148,6 +169,13 @@ def webCrawler(seeds, depth, driver, withinDomain,
 
     saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename)
 
+    driver.close()
+
+
+# TODO
+def wordCounter():
+    pass
+
 
 if __name__ == "__main__":
 
@@ -166,7 +194,7 @@ if __name__ == "__main__":
     webCrawler(seedList, 1, driver1, False,
                -1, "", "testing1.csv")
 
-    driver1.close()
+    #driver1.close()
 
 
 
