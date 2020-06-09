@@ -3,8 +3,10 @@ from selenium import webdriver
 from collections import defaultdict
 from multiprocessing import Process
 from tldextract import tldextract
+from nltk import FreqDist, word_tokenize, pos_tag
 
 
+# Get all visible links from a webpage
 # driver : webdriver object
 # seed   : a string of a link
 def getLinks(driver, seed):
@@ -21,6 +23,7 @@ def getLinks(driver, seed):
     return linksList
 
 
+# Get all visible text from a webpage
 # driver : webdriver object
 # seed   : a string of a link
 def getContent(driver, seed):
@@ -41,7 +44,7 @@ def getContent(driver, seed):
     return contentsList
 
 
-# filter for the crawler
+# Filter for the crawler; filtering domestic out-links and contents
 # source       = the source of outlinks
 # linkslist    = outlinks from the source
 # contentsList = contents of the outlinks
@@ -49,7 +52,7 @@ def getContent(driver, seed):
 # minKeywords  = minimum number keywords required to be in the content
 # keywords     = words / phrase / sentence need to be present in the content
 def crawlingFilter(source, linksList, contentsList, withinDomain,
-                   minKeywords, keywords = None):
+                   minKeywords, keywords):
 
     assert len(linksList) == len(contentsList)
 
@@ -60,21 +63,19 @@ def crawlingFilter(source, linksList, contentsList, withinDomain,
     newContentsList = []
 
     tldSource = (tldextract.extract(source))
-    if withinDomain:
+    if not withinDomain:
         for i in linksList:
             tldTarget = (tldextract.extract(i))
+            # tldSource.subdomain != tldSource.subdomain
+            if tldSource.domain.lower() == tldTarget.domain.lower() and \
+               tldSource.suffix.lower()  == tldTarget.suffix.lower() :
 
-            if tldSource.domain != tldTarget.domain or \
-               tldSource.suffix != tldTarget.suffix or \
-               tldSource.subdomain != tldSource.subdomain:
-
-                domainRequirement.append(True)
+                domainRequirement.append(False)
 
             else:
-                domainRequirement.append(False)
+                domainRequirement.append(True)
     else:
-        for i in linksList:
-            domainRequirement.append(True)
+        domainRequirement = [True for i in range(len(linksList))]
 
     if keywords is not None:
         for j in contentsList:
@@ -84,11 +85,10 @@ def crawlingFilter(source, linksList, contentsList, withinDomain,
                     count += 1
             contentRequirement.append(count >= minKeywords)
     else:
-        for j in contentsList:
-            contentRequirement.append(True)
+        contentRequirement = [True for j in range(len(contentsList))]
 
     for m, n in zip(domainRequirement and contentRequirement,
-                    range(len(linksList) - 1)):
+                    range(len(linksList))):
         if m:
             newLinksList.append(linksList[n])
             newContentsList.append(contentsList[n])
@@ -99,7 +99,8 @@ def crawlingFilter(source, linksList, contentsList, withinDomain,
     return newLinksList, newContentsList
 
 
-# Saving output in csv format
+# Saving output in csv format; ready for most network analysis software
+#   such as Gephi, Cytoscape, UCINET, etc
 # mainSource = list of all source of outlinks
 # mainTarget = list of all outlinks
 # mainDepth  = depth position of the target / outlinks
@@ -119,8 +120,44 @@ def saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename):
     del df
 
 
+# Preparing webdriver bots for parallel processing
+# n_bots : number of parallel process desired (no more than 4 at this time)
+def loadBots(n_bots):
+
+    # settings for the drivers
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--headless")
+
+    # --------------------- setting up workers ------------------------------
+    # change executable path to your absolute path to the first driver
+    driver1 = webdriver.Chrome(
+        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
+                        "hyperlinkminer/chromedriverA", options=chrome_options)
+
+    # change executable path to your absolute path to the second driver
+    driver2 = webdriver.Chrome(
+        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
+                        "hyperlinkminer/chromedriverB", options=chrome_options)
+
+    # change executable path to your absolute path to the third driver
+    driver3 = webdriver.Chrome(
+        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
+                        "hyperlinkminer/chromedriverC", options=chrome_options)
+
+    # change executable path to your absolute path to the fourth driver
+    driver4 = webdriver.Chrome(
+        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
+                        "hyperlinkminer/chromedriverD", options=chrome_options)
+
+    driverList = [driver1, driver2, driver3, driver4]
+
+    return driverList[0:n_bots]
+
+
 # TODO
-def loadBots():
+def load_seeds(seedList):
+
     pass
 
 
@@ -133,7 +170,7 @@ def loadBots():
 # keywords     = keywords that will filter the crawl
 # filename      = the filename of its output
 def webCrawler(seeds, depth, driver, withinDomain,
-               minKeywords, keywords, filename):
+               minKeywords, filename, keywords = None):
 
     depthCounter = depth
     mainSource = []; mainTarget = []
@@ -172,9 +209,45 @@ def webCrawler(seeds, depth, driver, withinDomain,
     driver.close()
 
 
-# TODO
-def wordCounter():
-    pass
+# Word tokenizer to analyze content using NLP. This will return
+#   the composition of the text by word tags as described by NLTK
+#   and also the frequency of that particular word.
+# seed    : source of content
+# content : text content of the seed (or website)
+def wordCounter(seed, content):
+
+    columns = ["CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS",
+               "MD", "NN", "NNS", "NNP", "NNPS", "PDT", "POS", "PRP", "PRP$",
+               "RB", "RBR","RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG",
+               "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB"]
+
+    text_dict = dict(FreqDist(pos_tag(word_tokenize(content.lower()))))
+    e = {}
+    for k, v in text_dict.items():
+        e[v] = e.get(v, [])
+        e[v].append(k)
+
+    for i in e.keys():
+        d = defaultdict(list)
+        for v, k in e[i]:
+            d[k].append(v)
+        e[i] = dict(d);
+        del d
+
+    e = pd.DataFrame(e);
+    e = e.T;
+    e = e.sort_index()
+    df = e[e.columns.intersection(columns)]
+    df = df.dropna(how="all")
+    df['index'] = seed
+
+    # break the lists inside DataFrame into text
+    df = df.applymap(lambda x:
+                     x if not isinstance(x, list)
+                     else ';'.join(x) if len(x) else '')
+    df['frequency'] = df.index
+
+    return df
 
 
 if __name__ == "__main__":
@@ -189,12 +262,11 @@ if __name__ == "__main__":
         executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
                         "hyperlinkminer/chromedriverA", options=chrome_options)
 
-    seedList = ["https://www.umich.edu"]
+    seed_list = ["https://umich.edu"]
 
-    webCrawler(seedList, 1, driver1, False,
-               -1, "", "testing1.csv")
+    webCrawler(seed_list, 1, driver1, False,
+               0, filename= "testing1.csv")
 
-    #driver1.close()
 
 
 
