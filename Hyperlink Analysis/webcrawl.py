@@ -3,13 +3,14 @@ from selenium import webdriver
 from collections import defaultdict
 from multiprocessing import Process
 from tldextract import tldextract
+from random import shuffle
 from nltk import FreqDist, word_tokenize, pos_tag
 
 
 # Get all visible links from a webpage
 # driver : webdriver object
 # seed   : a string of a link
-def getLinks(driver, seed):
+def get_links(driver, seed):
     linksList = []
     try:
         driver.get(seed)
@@ -25,8 +26,9 @@ def getLinks(driver, seed):
 
 # Get all visible text from a webpage
 # driver : webdriver object
+
 # seed   : a string of a link
-def getContent(driver, seed):
+def get_content(driver, seed):
 
     contentsList = []
     for i in seed:
@@ -51,8 +53,8 @@ def getContent(driver, seed):
 # withinDomain = whether to crawl outlinks of same domain with the source
 # minKeywords  = minimum number keywords required to be in the content
 # keywords     = words / phrase / sentence need to be present in the content
-def crawlingFilter(source, linksList, contentsList, withinDomain,
-                   minKeywords, keywords):
+def crawling_filter(source, linksList, contentsList, withinDomain,
+                    minKeywords, keywords):
 
     assert len(linksList) == len(contentsList)
 
@@ -105,7 +107,7 @@ def crawlingFilter(source, linksList, contentsList, withinDomain,
 # mainTarget = list of all outlinks
 # mainDepth  = depth position of the target / outlinks
 # filename    = filename of our outputs
-def saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename):
+def save_files(mainSource, mainTarget, mainContent, mainDepth, filename):
 
     assert len(mainSource) == len(mainTarget) == \
            len(mainContent) == len(mainDepth)
@@ -122,12 +124,14 @@ def saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename):
 
 # Preparing webdriver bots for parallel processing
 # n_bots : number of parallel process desired (no more than 4 at this time)
-def loadBots(n_bots):
+def load_bots(n_bots, headless):
 
     # settings for the drivers
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--incognito")
-    chrome_options.add_argument("--headless")
+
+    if headless:
+        chrome_options.add_argument("--headless")
 
     # --------------------- setting up workers ------------------------------
     # change executable path to your absolute path to the first driver
@@ -155,10 +159,15 @@ def loadBots(n_bots):
     return driverList[0:n_bots]
 
 
-# TODO
-def load_seeds(seedList):
+# Splitting seed links to n split (depending on # of parallel process)
+# seed_list  = list of seeds to be crawled
+# n_split    = number of parallel process
+def split_seeds(seed_list, n_split):
 
-    pass
+    shuffled_list = shuffle(seed_list)
+
+    for i in range(0, n_split):
+        yield shuffled_list[i::n_split]
 
 
 # Main function for web crawling
@@ -169,8 +178,8 @@ def load_seeds(seedList):
 # minKeywords  = how many keywords need to match the content
 # keywords     = keywords that will filter the crawl
 # filename      = the filename of its output
-def webCrawler(seeds, depth, driver, withinDomain,
-               minKeywords, filename, keywords = None):
+def web_crawler(seeds, depth, driver, withinDomain,
+                minKeywords, filename, keywords = None):
 
     depthCounter = depth
     mainSource = []; mainTarget = []
@@ -182,12 +191,12 @@ def webCrawler(seeds, depth, driver, withinDomain,
         layerContent = []; layerDepth  = []
 
         for seed in seeds:
-            links    = getLinks(driver, seed)
-            contents = getContent(driver, links)
+            links    = get_links(driver, seed)
+            contents = get_content(driver, links)
 
             filteredLinks, filteredContents = \
-                crawlingFilter(seed, links, contents, withinDomain,
-                               minKeywords, keywords)
+                crawling_filter(seed, links, contents, withinDomain,
+                                minKeywords, keywords)
             sourceList = [seed for i in range(len(filteredLinks))]
             depthLabel = [depthCounter - depth
                           for i in range(len(filteredLinks))]
@@ -204,7 +213,7 @@ def webCrawler(seeds, depth, driver, withinDomain,
 
         seeds = layerTarget; depth -= 1
 
-    saveFiles(mainSource, mainTarget, mainContent, mainDepth, filename)
+    save_files(mainSource, mainTarget, mainContent, mainDepth, filename)
 
     driver.close()
 
@@ -214,7 +223,7 @@ def webCrawler(seeds, depth, driver, withinDomain,
 #   and also the frequency of that particular word.
 # seed    : source of content
 # content : text content of the seed (or website)
-def wordCounter(seed, content):
+def word_counter(seed, content):
 
     columns = ["CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS",
                "MD", "NN", "NNS", "NNP", "NNPS", "PDT", "POS", "PRP", "PRP$",
@@ -231,13 +240,11 @@ def wordCounter(seed, content):
         d = defaultdict(list)
         for v, k in e[i]:
             d[k].append(v)
-        e[i] = dict(d);
-        del d
+        e[i] = dict(d); del d
 
-    e = pd.DataFrame(e);
-    e = e.T;
-    e = e.sort_index()
-    df = e[e.columns.intersection(columns)]
+    f = pd.DataFrame(e).T.sort_index()
+
+    df = f[f.columns.intersection(columns)]
     df = df.dropna(how="all")
     df['index'] = seed
 
@@ -262,10 +269,10 @@ if __name__ == "__main__":
         executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
                         "hyperlinkminer/chromedriverA", options=chrome_options)
 
-    seed_list = ["https://umich.edu"]
+    seedList = ["https://umich.edu"]
 
-    webCrawler(seed_list, 1, driver1, False,
-               0, filename= "testing1.csv")
+    web_crawler(seedList, 1, driver1, False,
+                0, filename= "testing1.csv")
 
 
 
