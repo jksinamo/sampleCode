@@ -1,6 +1,6 @@
 This is an example of Rasch model to compare security measures across U.S. high schools. Please go to RaschExperiment.pdf 
 for the report and rmd for reproducible appendix.
 
-** Correction in the Preface (will be updated ASAP) : "In my perspective as an independent analyst without domain **
-**   knowledge in school security measures ..." instead of "As an independent analyst with no domain knowledge in school **
-**   security measurements" **
+# Correction in the Preface (will be updated ASAP) : "In my perspective as an independent analyst without domain 
+#   knowledge in school security measures ..." instead of "As an independent analyst with no domain knowledge in school 
+#   security measurements" 
