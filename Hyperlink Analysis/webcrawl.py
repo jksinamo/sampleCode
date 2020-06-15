@@ -26,7 +26,6 @@ def get_links(driver, seed):
 
 # Get all visible text from a webpage
 # driver : webdriver object
-
 # seed   : a string of a link
 def get_content(driver, seed):
 
@@ -35,8 +34,8 @@ def get_content(driver, seed):
         if i is not None:
             try:
                 driver.get(i)
-                contentsList.append(str(driver.find_element_by_tag_name(
-                    "body").text))
+                contentsList.append(
+                    str(driver.find_element_by_tag_name("body").text))
 
             except Exception as e:
                 contentsList.append(e.args)
@@ -51,7 +50,8 @@ def get_content(driver, seed):
 # linkslist    = outlinks from the source
 # contentsList = contents of the outlinks
 # withinDomain = whether to crawl outlinks of same domain with the source
-# minKeywords  = minimum number keywords required to be in the content
+# minKeywords  = minimum number of MATCHING keywords required to be in
+#                the text content of a website
 # keywords     = words / phrase / sentence need to be present in the content
 def crawling_filter(source, linksList, contentsList, withinDomain,
                     minKeywords, keywords):
@@ -122,9 +122,9 @@ def save_files(mainSource, mainTarget, mainContent, mainDepth, filename):
     del df
 
 
-# Preparing webdriver bots for parallel processing
+# Preparing and starting webdriver bots for parallel processing
 # n_bots : number of parallel process desired (no more than 4 at this time)
-def load_bots(n_bots, headless):
+def load_bots(n_bots, headless = False):
 
     # settings for the drivers
     chrome_options = webdriver.ChromeOptions()
@@ -133,41 +133,27 @@ def load_bots(n_bots, headless):
     if headless:
         chrome_options.add_argument("--headless")
 
-    # --------------------- setting up workers ------------------------------
-    # change executable path to your absolute path to the first driver
-    driver1 = webdriver.Chrome(
-        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
-                        "hyperlinkminer/chromedriverA", options=chrome_options)
+    botList = []
 
-    # change executable path to your absolute path to the second driver
-    driver2 = webdriver.Chrome(
-        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
-                        "hyperlinkminer/chromedriverB", options=chrome_options)
+    for i in range(1, n_bots + 1):
+        botList.append(webdriver.Chrome(
+            executable_path="/Users/joshuakevinsinamo/"
+                            "PycharmProjects/hyperlinkminer/chromedriver" +
+                            str(i), options=chrome_options))
 
-    # change executable path to your absolute path to the third driver
-    driver3 = webdriver.Chrome(
-        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
-                        "hyperlinkminer/chromedriverC", options=chrome_options)
-
-    # change executable path to your absolute path to the fourth driver
-    driver4 = webdriver.Chrome(
-        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
-                        "hyperlinkminer/chromedriverD", options=chrome_options)
-
-    driverList = [driver1, driver2, driver3, driver4]
-
-    return driverList[0:n_bots]
+    return botList
 
 
 # Splitting seed links to n split (depending on # of parallel process)
+#   in equal chunk length
 # seed_list  = list of seeds to be crawled
 # n_split    = number of parallel process
 def split_seeds(seed_list, n_split):
 
-    shuffled_list = shuffle(seed_list)
+    container = seed_list; shuffle(container)
 
     for i in range(0, n_split):
-        yield shuffled_list[i::n_split]
+        yield container[i::n_split]
 
 
 # Main function for web crawling
@@ -218,6 +204,24 @@ def web_crawler(seeds, depth, driver, withinDomain,
     driver.close()
 
 
+# No join here so that the main process can complete before child process does
+def multiprocess_crawling(seeds, depth, withinDomain, minKeywords, filename,
+                          n_bots, headless, keywords = None):
+
+    for i, j, k in zip(load_bots(n_bots, headless),  # by the end of this line,
+                                                     # the bots has initiated
+
+                       split_seeds(seeds, n_bots),   # shuffling and splitting
+                                                     # the seed links
+
+                       range(1, n_bots + 1)):        # number of multiprocess
+        p = Process(target = web_crawler,
+                    args = (j, depth, i, withinDomain, minKeywords, filename
+                            + str(k), keywords))
+        p.start()                                    # Starting the engine
+
+
+# AUXILIARY FUNCTION
 # Word tokenizer to analyze content using NLP. This will return
 #   the composition of the text by word tags as described by NLTK
 #   and also the frequency of that particular word.
@@ -259,20 +263,21 @@ def word_counter(seed, content):
 
 if __name__ == "__main__":
 
-    # sample run
+    # sample run for single window run
 
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--incognito")
-    # chrome_options.add_argument("--headless")
+    def single_window_run():
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--incognito")
+        chrome_options.add_argument("--headless")
 
-    driver1 = webdriver.Chrome(
-        executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
-                        "hyperlinkminer/chromedriverA", options=chrome_options)
+        driver1 = webdriver.Chrome(
+            executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
+                            "hyperlinkminer/chromedriver1",
+            options=chrome_options)
 
-    seedList = ["https://umich.edu"]
+        seedList = ["https://umich.edu"]
 
-    web_crawler(seedList, 1, driver1, False,
-                0, filename= "testing1.csv")
+        web_crawler(seedList, 1, driver1, False, 0, filename= "testing1.csv")
 
 
 
