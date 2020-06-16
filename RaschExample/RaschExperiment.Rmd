@@ -1,48 +1,54 @@
 ---
 title: |
-  | Brief Exploration of ELS:2002 Questionnaries as Rasch Items to Compare Security Measures in U.S. 
-  High Schools
-subtitle: |
-  | Adapted From: Misbehavior, Suspensions and Security Measures in High School: 
-  | Racial/Ethnic and Gender Differences (Finn & Servoss, 2014)
+  | Brief Exploration of ELS:2002 Questionnaries as Rasch Items to Compare Security Measures in U.S. High Schools
 author: "Joshua Sinamo"
-output: html_document
-
+subtitle: |
+  | Adapted From: Misbehavior, Suspensions and Security Measures in High School: Racial/Ethnic and Gender Differences (Finn & Servoss, 2014)
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
 ---
 
-## Appendix Overview 
-- Preface & List of Security Questions
-- External Requirements
-- General Data Cleaning for All Analysis
-- Finn and Servoss Question Set - Initialization
-- My Alternative Rasch Model - Initialization
-- Hyperparameter Tuning - Computation
-- Hyperparameter Tuning - Visualization (AIC, BIC, RMSE, Mean of RanEf coeff)
-- Hyperparameter Tuning - Visualization (Fixed Effect Coefficients)
-- Assessment of Indexing Methods between The Two Models 
-- Model Comparison via Bootstrapping - Initialization
-- Model Comparison via Bootstrapping - Data Cleaning
-- Model Comparison via Bootstrapping - Data Cleaning
-- Expected Coverage Length Comparison
-- Future Analysis 
+<hr style="height:2px;color:#333;background-color:#333;" />
 
-## Preface & List of Security Questions
+### Appendix Overview 
+I.    Preface 
+II.   List of ELS:2002 Admin Questionnaire (security questions)
+III.  External Requirements
+IV.   General Data Cleaning for All Analysis
+V.    Finn and Servoss Question Set - Initialization
+VI.   My Alternative Rasch Model - Initialization
+VII.  Hyperparameter Tuning - Computation
+VIII. Hyperparameter Tuning - Visualization (AIC, BIC, RMSE, Mean of RanEf coeff)
+IX.   Hyperparameter Tuning - Visualization (Fixed Effect Coefficients)
+X.    Assessment of Indexing Methods between The Two Models 
+XI.   Model Comparison via Bootstrapping - Initialization
+XII.  Model Comparison via Bootstrapping - Data Cleaning
+XIII. Model Comparison via Bootstrapping - Data Cleaning
+XIV.  Expected Coverage Length Comparison
+XV.   Conclusion & Future Analysis 
+
+
+### I. Preface 
 This is a mini assessment comparing two IRT (or Rasch) models involving two different sets of 
 questions. These models are purposed for calculation, comparison and indexing of security measures 
 across U.S. high schools. The only difference between the two models are the set of questions that 
 are used to measure security level. Finn & Servoss (2014) in their paper: Misbehavior, Suspensions 
 and Security Measures in High School: Racial/Ethnic and Gender Differences, proposed a set of 7 
-questions to measure security level. As an independent analyst with no domain knowledge in school
-security measurements, their set of questions seems to be qualitatively redundant and therefore 
-I experimented with an alternative set by selecting questions that seemingly unrelated with each 
-other. Finn & Servoss used the Education Longitudinal Study (NCES, 2002) survey data, which is 
-available via NCES website. In ELS:2002 survey, school administrators were asked about their 
-schools' demographics, academic performance, and among other things security measures in their 
+questions to measure security level. In my perspective as an independent analyst with no domain 
+knowledge in school security measurements, their set of questions seems to be qualitatively 
+redundant and therefore I experimented with an alternative set by selecting questions that seemingly 
+unrelated with each other. Finn & Servoss used the Education Longitudinal Study (NCES, 2002) survey 
+data, which is available via NCES website. In ELS:2002 survey, school administrators were asked about 
+their schools' demographics, academic performance, and among other things security measures in their 
 institution. 
 
-The 24 security questions from ELS:200 Admin Questionnaire are as follows: 
+\newpage
 
-***
+### II. List of ELS:2002 Admin Questionnaire (security questions)
+
+<hr style="height:1px;color:#333;background-color:#333;" />
 
 38. During this school year (2001-2002), is it a practice of your school to do the following? 
 (If your school changed its practices in the middle of the school year, please answer regarding 
@@ -83,9 +89,11 @@ C.	Use paid security at school activities
 D.	Use paid security outside of school hours/activities	
 E.	Use paid security at other time	
 
-***
+<hr style="height:1px;color:#333;background-color:#333;" />
 
-## Methods Sources
+\newpage
+
+### III. Methods Sources
 - On Security Questions and Literature
   
   Finn, Jeremy D. & Servoss, Timothy J. (2014). Misbehavior, Suspensions, and Security Measures in 
@@ -113,10 +121,10 @@ E.	Use paid security at other time
   Kropko, J., & Harden, J. (2020). Beyond the Hazard Ratio: Generating Expected Durations from the 
     Cox Proportional Hazards Model. British Journal of Political Science, 50(1), 303-320.   
     doi:10.1017/S000712341700045X. https://cran.r-project.org/web/packages/coxed/coxed.pdf
-  
-  
 
-## External Requirements
+\newpage
+
+### IV. External Requirements
 - What  : Loading required libraries & dataset 
 ```{r eval=FALSE}
 # to clean up global environment, run this
@@ -124,6 +132,7 @@ rm(list = ls())
 ```
 
 ```{r message=FALSE}
+library(gridExtra)    ; library(knitr)
 library(lme4)         ; library(tidyr)
 library(dplyr)        ; library(ggplot2) 
 library(reshape2)     ; library(Kendall)
@@ -131,7 +140,6 @@ library(parallel)     ; library(gplots)
 library(graphics)     ; library(dendextend)
 library(grid)         ; library(directlabels)
 library(RColorBrewer) ; library(coxed)
-library(gridExtra)
 ```
 
 ```{r cache = TRUE}
@@ -139,7 +147,7 @@ dat <- read.csv("./Downloads/project/els_02_12_byf3pststu_v1_0.csv")
 ```
 
 
-## General Data Cleaning for All Analysis
+### V. General Data Cleaning for All Analysis
 - What : Data cleaning in accordance to NCES ELS 2002 codebook
 `````````````````````````````````````````````````````````````````````````````````````````````````{r}
 dataSecurity <- dat %>% dplyr::select("F1SCH_ID", "BYA38A", "BYA38B", "BYA38C", "BYA38D", "BYA38E", 
@@ -155,81 +163,68 @@ names(dataSecurity)[2:25] <- substring(colnames(dataSecurity[,c(2:25)]), first =
 names(dataSecurity)[1] <- "school"
 rownames(dataSecurity) <- NULL
 dataSecurity[dataSecurity == -9] <- NA
-head(data.frame(dataSecurity))
+kable(head(dataSecurity), caption="This is the snippet of data that we'll be working with")
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
-
-## Finn and Servoss Question Set - Initialization
+\newpage
+### VI. Finn & Servoss and Alternative Question Sets - Initialization
 - What : Imitating Finn & Servoss' set of questions & transform the data into item-response set
-- Why  : Assess & compare the two models later (1)
+- Why  : Assess & compare the two models later 
 - How  : Literature analysis from Finn & Servoss (2014)
 
-List of Finn & Servoss' Selected Questions:
+<hr style="height:1px;color:#333;background-color:#333;" />
 
-***
+<span style="color:blue">Blue</span> = Finn & Servoss' | <span style="color:red">Red</span> = Alternative | <span style="color:magenta">Magenta</span> = Both 
 
 38. During this school year (2001-2002), is it a practice of your school to do the following? 
 (If your school changed its practices in the middle of the school year, please answer regarding 
 your most recent practice.) (MARK ONE RESPONSE ON EACH LINE) (Yes; No) 
 
-C.	Require students pass through metal detector	
-D.	Random metal detector checks on students	
-F.	Random dog sniffs to check for drugs	
-G.	Random sweeps for contraband	
-H.	Require drug testing for any students	
-N.	Use security cameras to monitor school	
+A.	<span style="color:gainsboro">Control access to buildings during school hours	</span>
+B.	<span style="color:gainsboro">Control access to grounds during school hours </span>
+C.	<span style="color:magenta">Require students pass through metal detector	</span>
+D.	<span style="color:blue">Random metal detector checks on students	</span>
+E.	<span style="color:red">Close campus for students during lunch </span>
+F.	<span style="color:blue">Random dog sniffs to check for drugs	</span>
+G.	<span style="color:blue">Random sweeps for contraband </span>
+H.	<span style="color:magenta">Require drug testing for any students	</span>
+I.	<span style="color:gainsboro">Require students to wear uniforms	</span>
+J.	<span style="color:red">Enforce strict dress code </span>
+K.	<span style="color:red">Require clear book bags/ban book bags	</span>
+L.	<span style="color:gainsboro">Require students to wear badges/picture ID </span>	
+M.	<span style="color:gainsboro">Require faculty/staff to wear badges/picture ID	</span>
+N.	<span style="color:blue">Use security cameras to monitor school </span>
+O.	<span style="color:gainsboro">Telephones in most classrooms	</span>
+P.	<span style="color:gainsboro">Emergency call button in classrooms	</span>
 
-40. During the 2001-2002 school year, did your school regularly use paid law enforcement or security 
-services at school at the following times? (MARK ONE RESPONSE ON EACH LINE) (Yes; No)
 
-A. 	Use paid security at any time during school hours	
+39. Which of the following does your school do to involve or help parents deal with school 
+discipline issues? (MARK ONE RESPONSE ON EACH LINE) (Yes; No) 
 
-***
+A.  <span style="color:gainsboro">Process to get parent input on discipline policies </span>
+B. 	<span style="color:gainsboro">Training parents to deal with problem behavior	</span>
+C. 	<span style="color:red">Program involves parents in school discipline	</span>
+
+
+40. During the 2001-2002 school year, did your school regularly use paid law enforcement or 
+security services at school at the following times? (MARK ONE RESPONSE ON EACH LINE) (Yes; No)
+
+A. 	<span style="color:blue">Use paid security at any time during school hours	</span>
+B.	<span style="color:gainsboro">Use paid security as students arrive or leave	</span>
+C.	<span style="color:gainsboro">Use paid security at school activities	</span>
+D.	<span style="color:gainsboro">Use paid security outside of school hours/activities	</span>
+E.	<span style="color:gainsboro">Use paid security at other time	</span>
+
+<hr style="height:1px;color:#333;background-color:#333;" />
 
 Previously, I determined that this set is qualitatively redundant because, for example, 
 38C and 38D seemingly covers the same things, also 38F and 3H in the same manner.
 
 `````````````````````````````````````````````````````````````````````````````````````````````````{r}
 # FINN AND SERVOS SET OF QUESTIONS
-
 FandS_set <- dataSecurity %>% select("school", "38C", "38D", "38H", "38G", "38N", "40A", "38F")
 FandS_rasch <- FandS_set %>% tidyr::gather("item", "response", -school)
 ````````````````````````````````````````````````````````````````````````````````````````````````````
-
-
-## My Alternative Rasch Model - Initialization
-- What : Providing my set of security questions & transform the data into item-response set
-- Why  : Assess & compare the two models later (2)
-- How  : Finding 7 questions in ELS:2002 in which qualitatively less overlapping with each other
-
-In my perspective, these seven questions will result in less overlaps between questions
-
-***
-
-My alternative set of questions:
-
-38. During this school year (2001-2002), is it a practice of your school to do the following? 
-(If your school changed its practices in the middle of the school year, please answer regarding 
-your most recent practice.) (MARK ONE RESPONSE ON EACH LINE) (Yes; No) 
-
-C.	Require students pass through metal detector	
-E.	Close campus for students during lunch	
-H.	Require drug testing for any students	
-J.	Enforce strict dress code	
-K.	Require clear book bags/ban book bags	
-
-39. Which of the following does your school do to involve or help parents deal with school 
-discipline issues? (MARK ONE RESPONSE ON EACH LINE) (Yes; No) 
-
-C. 	Program involves parents in school discipline	
-
-
-40. During the 2001-2002 school year, did your school regularly use paid law enforcement or security 
-services at school at the following times? (MARK ONE RESPONSE ON EACH LINE) (Yes; No)
-
-E.	Use paid security at other time	
-
-***
 
 `````````````````````````````````````````````````````````````````````````````````````````````````{r}
 # MY ALTERNATIVE SET OF QUESTIONS
@@ -237,8 +232,9 @@ alt_set <- dataSecurity %>% select("school", "38H", "38K", "38C", "38E", "40E", 
 alt_rasch <- alt_set %>% tidyr::gather("item", "response", -school)
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
+\newpage
 
-## Hyperparameter Tuning - Computation
+### VII. Hyperparameter Tuning - Computation
 - What : Selecting the minimal nAGQ where the metrics start to stabilize; although the difference is 
          minimal, I'm looking for precision. Also, catching failure to converge
 - Why  : Need appropriate nAGQ to have a more precise & unbiased model comparison 
@@ -277,8 +273,11 @@ for (i in 1:n){
 }
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
+- Result : nAGQ = 6 and 9 failed to converge. We will exclude these two candidates for analysis
 
-## Hyperparameter Tuning - Visualization (RMSE, Mean of RanEf Intercept Coeffs.)
+\newpage
+
+### VIII. Hyperparameter Tuning - Visualization (AIC, BIC, RMSE, Mean of RanEf Intercept Coeffs.)
 - What   : Visualizing the results from nAGQ optimization above
 - Why    : To see what is the minimum value of nAGQ that can be considered as stable (1)
 - How    : Find the minimal value where there's no considerable fluctuation of the aforementioned 
@@ -312,8 +311,9 @@ ggplot(data = assessment_data, aes(x = nAGQ, y = value, color = model)) +
   - My model has better AIC, BIC, RMSE, and mean of random intercepts are closer to 0 
               (although negligible)
 
+\newpage
 
-## Hyperparameter Tuning - Visualization (Fixed Effect Coefficients)
+### IX. Hyperparameter Tuning - Visualization (Fixed Effect Coefficients)
 - What   : Visualizing the fixed effect coefficients from nAGQ optimization above
 - Why    : To check what is the minimum value of nAGQ that can be considered as stable (2)
 - How    : Finding the minimal value where there's no considerable fluctuation of 
@@ -353,8 +353,9 @@ ggplot(data = fixef_graph_data, aes(x = nAGQ, y = value, colour = variable)) +
   -  It seems that fixed effect coefficients of Finn & Servoss' model more well spread, 
      forming a more reasonable hierarchy of security measures than mine
 
+\newpage
 
-## Assessment of Indexing Methods between The Two Models 
+### X. Assessment of Indexing Methods between The Two Models 
 - What   : Initializing the two rasch (or IRT) models and transforming the data into 
              item-response format for assessment
 - Why    : To compare the indexing methods of the two models (my alternative model vs Finn & Servoss') 
@@ -374,13 +375,15 @@ plot(rank(ranef(rasch_lmer_FandS)$school[["(Intercept)"]]),
      main = "Random Effect Indices (Ranking) : F&S vs Alternative")
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
+
 - Result : 
   - Despite the plot showing that the relationship looks undefined, we can reject the 
     null hypothesis that the ranking system between the two models is different. 
     Consequently, there's a low positive correlation between them
 
+\newpage
 
-## Model Comparison via Bootstrapping - Initialization
+### XI. Model Comparison via Bootstrapping - Initialization
 - What   : Parallel nonparametric bootstrapping 
 - Why    : To calculate and compare the expected length of the 95% CIs, means of random effect 
              coefficients, and time spent for bootstrapping the two models 
@@ -428,11 +431,11 @@ end.time2 <- Sys.time(); cat("Alternative    : Processing Time =  ", end.time2 -
 stopCluster(cl)
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
-- Note   : Although in this session Finn & Servoss' model takes longer to converge, in other re-runs
-           mine takes longer.
+- Note   : Finn & Servoss' model takes more time to converge
 
+\newpage
 
-## Model Comparison via Bootstrapping - Data Cleaning & Confidence Interval
+### XII. Model Comparison via Bootstrapping - Data Cleaning & Confidence Interval
 - What   : Data cleaning of the bootstrapped data and calculations of 
              95% bias-corrected & accelerated CI length
 - Why    : The bootsrapped data in replicate is in a form of list of multiple dataframes, 
@@ -473,17 +476,18 @@ alt_boot <- dataCleaning(bootstats_alt)
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
 
-## Expected CI Length Comparison
+### XIII. Expected CI Length Comparison
 - What    : Comparing the mean of the length of 95% confidence intervals
 `````````````````````````````````````````````````````````````````````````````````````````````````{r}
 mean(alt_boot[[2]]$CI_length)/ mean(ori_boot[[2]]$CI_length) - 1
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 
 - Results : On average, security indices produced using Finn & Servoss' model is 4.6% more precise 
-              than mine in a sense that on average their CIs are 4.6% tighter
+              than mine in a sense that on average their CIs are approx. 4.6% tighter
 
+\newpage
 
-## Density of Rasch Indices
+### XIV. Density of Rasch Indices
 - What    : Comparing the density plots of Rasch indices (random intercepts) from the two models
 - How     : Density plots of Rasch indices two models
 ``````````````````````````````````````````````````````````````````````````````{r fig.align="center"}
@@ -512,15 +516,16 @@ grid.arrange(plot1, plot2)
               at all points compared to Finn & Servoss'. In general, both models are more precise
               in the midpoints and less as indices approach the edges
 
+\newpage
 
-## Future Analysis 
+### XV. Conclusion & Future Analysis 
   My model performs quite well against Finn & Servoss' w.r.t AIC, BIC and RMSE under 
 4 gaussian quadrature points. However, having a better AIC, BIC and RMSE doesn't 
-guarantee a better model and it is evident by the distribution of Rasch indices between
-the two models. Moreover, my model on average is 4% less  precise in its indexing process. 
-The two models rank security levels at schools in a roughly similar way (statistically 
-significant positive but low Kendall tau). Finn & Servoss' model also allows more 
-statistically significant comparison of security measures between schools. 
+guarantee a better model (it is contextual and depending on application) and it is evident by 
+the distribution of Rasch indices between the two models. Moreover, my model on average is 4.6% 
+less precise in its indexing process. The two models rank security levels at schools in a roughly 
+similar way (statistically significant positive but low Kendall tau). Finn & Servoss' model also 
+allows more statistically significant comparison of security measures between schools. 
 
   Previously, we chose the questions based on literature analysis (e.g. what are the security 
 questions that seemingly the least qualitatively overlapping with each other). Based on our prior 
