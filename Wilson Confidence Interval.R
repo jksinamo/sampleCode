@@ -1,7 +1,7 @@
 # This is a function to calculate binomial confidence interval. Brown, Cai & Dasgupta provided
 #   evidence that standard confidence interval (or Wald) is presistently chaotic and unacceptably poor
 #   and suggested that the widely used standard interval to not be used. They also recommended the 
-#   use of Wilson or equal-tailed Jeffereys prior intervl for low n and Wilson, Jeffreys or 
+#   use of Wilson or equal-tailed Jeffereys prior interval for low n and Wilson, Jeffreys or 
 #   Agresti-Couli for larger n. 
 
 # REFERENCE
