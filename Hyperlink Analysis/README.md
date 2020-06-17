@@ -5,7 +5,7 @@
 In addition to libraries, you will also need chromedriver in the version of your Chrome browser. 
 Available at:https://chromedriver.chromium.org/
 
-**Dummy sites used to test:**
+**Dummy sites I created to test functions:**
 - https:sites.google.com/view/crawlingtestunit1
 - https:sites.google.com/view/crawlingtestunit2
 - https:sites.google.com/view/crawlingtestunit3
