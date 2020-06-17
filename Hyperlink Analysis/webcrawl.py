@@ -45,24 +45,9 @@ def get_content(driver, seed):
     return contentsList
 
 
-# Filter for the crawler; filtering domestic out-links and contents
-# source       = the source of outlinks
-# linkslist    = outlinks from the source
-# contentsList = contents of the outlinks
-# withinDomain = whether to crawl outlinks of same domain with the source
-# minKeywords  = minimum number of MATCHING keywords required to be in
-#                the text content of a website
-# keywords     = words / phrase / sentence need to be present in the content
-def crawling_filter(source, linksList, contentsList, withinDomain,
-                    minKeywords, keywords):
+def check_directions(source, linksList, withinDomain):
 
-    assert len(linksList) == len(contentsList)
-
-    domainRequirement  = []
-    contentRequirement = []
-
-    newLinksList    = []
-    newContentsList = []
+    domainRequirement = []
 
     tldSource = (tldextract.extract(source))
     if not withinDomain:
@@ -70,7 +55,7 @@ def crawling_filter(source, linksList, contentsList, withinDomain,
             tldTarget = (tldextract.extract(i))
             # tldSource.subdomain != tldSource.subdomain
             if tldSource.domain.lower() == tldTarget.domain.lower() and \
-               tldSource.suffix.lower()  == tldTarget.suffix.lower() :
+                    tldSource.suffix.lower() == tldTarget.suffix.lower():
 
                 domainRequirement.append(False)
 
@@ -78,6 +63,13 @@ def crawling_filter(source, linksList, contentsList, withinDomain,
                 domainRequirement.append(True)
     else:
         domainRequirement = [True for i in range(len(linksList))]
+
+    return domainRequirement
+
+
+def check_contents(keywords, contentsList, minKeywords):
+
+    contentRequirement = []
 
     if keywords is not None:
         for j in contentsList:
@@ -89,7 +81,26 @@ def crawling_filter(source, linksList, contentsList, withinDomain,
     else:
         contentRequirement = [True for j in range(len(contentsList))]
 
-    for m, n in zip(domainRequirement and contentRequirement,
+    return contentRequirement
+
+
+# Filter for the crawler; filtering domestic out-links and contents
+# source       = the source of outlinks
+# linkslist    = outlinks from the source
+# contentsList = contents of the outlinks
+# withinDomain = whether to crawl outlinks of same domain with the source
+# minKeywords  = minimum number of MATCHING keywords required to be in
+#                the text content of a website
+# keywords     = words / phrase / sentence need to be present in the content
+def crawling_filter(domainRequirement, contentRequirement,
+                    linksList, contentsList):
+
+    assert len(linksList) == len(contentsList)
+
+    newLinksList = []; newContentsList = []
+
+    for m, n in zip([d and c for d, c in zip(domainRequirement,
+                                             contentRequirement)],
                     range(len(linksList))):
         if m:
             newLinksList.append(linksList[n])
@@ -209,10 +220,11 @@ def multiprocess_crawling(seeds, depth, withinDomain, minKeywords, filename,
                           n_bots, headless, keywords = None):
 
     for i, j, k in zip(load_bots(n_bots, headless),  # by the end of this line,
-                                                     # the bots has initiated
+                                                     #   the bots has been
+                                                     #   initiated
 
                        split_seeds(seeds, n_bots),   # shuffling and splitting
-                                                     # the seed links
+                                                     #   the seed links
 
                        range(1, n_bots + 1)):        # number of multiprocess
         p = Process(target = web_crawler,
@@ -278,12 +290,6 @@ if __name__ == "__main__":
         seedList = ["https://umich.edu"]
 
         web_crawler(seedList, 1, driver1, False, 0, filename= "testing1.csv")
-
-
-
-
-
-
 
 
 
