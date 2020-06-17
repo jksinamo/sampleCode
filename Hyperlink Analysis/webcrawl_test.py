@@ -144,7 +144,7 @@ class TestCrawlingFilter(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(webcrawl.crawling_filter([], [], [], []),
                          ([], []),
-                         "Output should be: (['test2.com'], ['content2'])")
+                         "Output should be: ([], [])")
         
         
 class TestSplitSeeds(unittest.TestCase):
