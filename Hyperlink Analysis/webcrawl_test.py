@@ -2,7 +2,6 @@ import unittest
 import webcrawl
 from selenium import webdriver
 
-
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--incognito")
 driver1 = webdriver.Chrome(
@@ -146,10 +145,8 @@ class TestCrawlingFilter(unittest.TestCase):
         self.assertEqual(webcrawl.crawling_filter([], [], [], []),
                          ([], []),
                          "Output should be: (['test2.com'], ['content2'])")
-
-
-
-
+        
+        
 class TestSplitSeeds(unittest.TestCase):
 
     def test_equal_list_length(self):
@@ -162,15 +159,16 @@ class TestSplitSeeds(unittest.TestCase):
         for i in webcrawl.split_seeds([1, 2, 3], 4):
             self.assertTrue(len(i) == 1 or len(i) == 0 ,
                             "All length should be 1 or 0")
-
-
+        
+        
 # TODO
 class TestWordCounter(unittest.TestCase):
-    assert False
+    pass
 
 
 if __name__ == '__main__':
 
     # MORE WILL BE ADDED ABOVE
     unittest.main()
+    driver1.close()
 
