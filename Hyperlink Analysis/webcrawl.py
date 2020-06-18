@@ -5,6 +5,20 @@ from multiprocessing import Process
 from tldextract import tldextract
 from random import shuffle
 from nltk import FreqDist, word_tokenize, pos_tag
+import tkinter as tk
+from tkinter import filedialog
+import time
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--incognito")
+
+
+def csv_to_list(filename):
+
+    with open(str(filename), 'r') as f:
+        data = [line.rstrip('\n') for line in f]
+
+    return data
 
 
 # Get all visible links from a webpage
@@ -273,23 +287,106 @@ def word_counter(seed, content):
     return df
 
 
+class messageColor:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def welcome():
+
+    print('\n --------- \n Welcome! \n --------- \n\n'
+          'The purpose of this program is to mine links and its contents.\n'
+          'Intended users are researchers and for non-profit usages only.\n\n'
+          'Please refer to laws regarding to research procedures '
+          'and intellectual property & copyright to advance\n')
+
+    while True:
+
+        g = input(f"{messageColor.WARNING}"
+                  f"Type OK to proceed or exit to close this program: "
+                  f"{messageColor.ENDC}")
+
+        if g.lower() == "OK":
+            break
+
+        elif g.lower() == "exit":
+            print(f"{messageColor.OKGREEN}\nThank you for coming!{messageColor.ENDC}")
+            exit(0)
+
+        else:
+            print(f"{messageColor.WARNING}\nPlease type OK to proceed, exit to close"
+                  f" this program. If you're not sure about the procedure, "
+                  f"please consult with your own legal counsel on your "
+                  f"situation and specific legal questions you have.\n"
+                  f"{messageColor.ENDC}")
+            continue
+
+
+def select_seed_file():
+
+    print("\nTo start, I'll need few things as specified below:\n"
+          "--------------------------------------------------\n")
+    root = tk.Tk(); root.withdraw()
+
+    print("1. A csv file of seed links separated by newlines")
+    time.sleep(2)
+    print("selecting file.....")
+    file_path_seed = tk.filedialog.askopenfilename()
+    print(f"{messageColor.OKGREEN} --OK\n\n{messageColor.ENDC}")
+
+    return csv_to_list(file_path_seed)
+
+
+def chromedriver_checker(n_bots):
+
+    root = tk.Tk(); root.withdraw()
+
+    chromedriver_address = []; confirmedBots = 0
+    while confirmedBots < n_bots:
+        try:
+            fpath_chromedriver = tk.filedialog.askopenfilename()
+            driver = webdriver.Chrome(executable_path=fpath_chromedriver,
+                                          options=chrome_options)
+            driver.close()
+            chromedriver_address.append(fpath_chromedriver)
+            confirmedBots += 1
+            print(f"{messageColor.OKGREEN}chromedriver #{confirmedBots} out of "
+                  f"{n_bots} works!{messageColor.ENDC}")
+
+        except Exception as e:
+            print(f"{messageColor.WARNING}"
+                  f"That's not a chromedriver and/or an "
+                  f"appropriate version of it{messageColor.ENDC}\n"
+                  f"{messageColor.FAIL}"
+                  f"{e.args}{messageColor.ENDC}\n")
+
+    return chromedriver_address
+
+
+def select_content_filters():
+
+    root  = tk.Tk(); root.withdraw()
+    fpath_content_filter = tk.filedialog.askopenfilename()
+
+    return csv_to_list(fpath_content_filter)
+
+
+# TODO
+def select_output_filename():
+    pass
+
+
+# TODO
+def display_progress_bar():
+    pass
+
+
+# TODO
 if __name__ == "__main__":
-
-    # sample run for single window run
-
-    def single_window_run():
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--incognito")
-        chrome_options.add_argument("--headless")
-
-        driver1 = webdriver.Chrome(
-            executable_path="/Users/joshuakevinsinamo/PycharmProjects/"
-                            "hyperlinkminer/chromedriver1",
-            options=chrome_options)
-
-        seedList = ["https://umich.edu"]
-
-        web_crawler(seedList, 1, driver1, False, 0, filename= "testing1.csv")
-
-
-
+    pass
