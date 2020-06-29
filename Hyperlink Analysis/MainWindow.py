@@ -7,7 +7,7 @@ from webcrawl import *
 class MainWindow:
     def __init__(self, master):
 
-        # instantiating root
+        # instantiating tkinter root
         self.master = master
 
         # instantiating all frames in the app
@@ -17,12 +17,10 @@ class MainWindow:
                                bg="ivory", relief = tk.GROOVE, borderwidth = 3)
         self.frame3 = tk.Frame(self.master, width=350, height=35,
                                bg="ivory", relief = tk.GROOVE, borderwidth = 3)
-        self.frame4a = tk.Frame(self.master, width=260, height=100,
+        self.frame4a = tk.Frame(self.master, width=260, height=50,
                                bg="ivory", relief = tk.GROOVE, borderwidth = 3)
         self.frame4b = tk.Frame(self.master, width=90, height=50,
                                bg="ivory", relief = tk.GROOVE, borderwidth = 3)
-        self.frame4c = tk.Frame(self.master, width=90, height=50,
-                                bg="ivory", relief=tk.GROOVE, borderwidth=3)
         self.frame5 = tk.Frame(self.master, width=350, height=35,
                                bg="ivory", relief = tk.GROOVE, borderwidth = 3)
         self.frame6 = tk.Frame(self.master, width=350, height=35,
@@ -43,15 +41,11 @@ class MainWindow:
         self.frame3.grid(column=0, row=2, columnspan=2)
         self.frame3.pack_propagate(False)
 
-        self.frame4a.grid(column=0, row=3, columnspan=1, rowspan = 2)
+        self.frame4a.grid(column=0, row=3, columnspan=1)
         self.frame4a.pack_propagate(False)
 
-        self.frame4b.grid(column=1, row=3, columnspan=1, rowspan = 1)
+        self.frame4b.grid(column=1, row=3, columnspan=1)
         self.frame4b.pack_propagate(False)
-
-        self.frame4c.grid(column=1, row=4, columnspan=1, rowspan = 1)
-        self.frame4c.pack_propagate(False)
-
 
         self.frame5.grid(column=0, row=5, columnspan=2)
         self.frame5.pack_propagate(False)
@@ -98,8 +92,8 @@ class MainWindow:
                                      "and wish to proceed.",
                  bg="ivory", anchor=tk.N, wraplength = 340,
                  justify = tk.CENTER).pack(side=tk.TOP)
-        tk.Label(self.frame6, text = ".csv ").pack(side = tk.RIGHT)
-        tk.Label(self.frame7, text = ".csv ").pack(side = tk.RIGHT)
+        tk.Label(self.frame6, text=".csv ", bg="ivory").pack(side =tk.RIGHT)
+        tk.Label(self.frame7, text=".csv ", bg="ivory").pack(side = tk.RIGHT)
 
         # instantiating buttons
         self.button1 = tk.Button(self.frame2, text = ' select seed file',
@@ -160,6 +154,7 @@ class MainWindow:
 
         self.seedAddress = ''
         self.filterAddress = ''
+        self.crawlQuery = []
 
     def enable_filter_file(self):
         if self.contentFilterStatus.get():
@@ -190,55 +185,109 @@ class MainWindow:
                                   "if you wish to expore more about the "
                                   "underlying regulations")
 
-        crawlQuery = [self.seedAddress, self.depthChoice.get(),
-                      self.noDomesticLinkStatus.get(),
-                      self.contentFilterStatus.get(), self.filterAddress,
-                      self.parallelChoice.get(), self.edgesListFilename.get(),
-                      self.nodesListFilename.get()]
+        self.crawlQuery = [self.seedAddress,
+                           self.depthChoice.get(),
+                           self.noDomesticLinkStatus.get(),
+                           self.parallelChoice.get(),
+                           self.edgesListFilename.get(),
+                           self.filterAddress]
 
         if len(potentialError) != 0:
             messagebox.showwarning("Error", message="\n".join(potentialError))
 
         else:
-            msgBox = messagebox.askquestion("Proceed?",
-                                   message = "Do you wish to proceed with "
-                                             "entires as follows:" + \
-                                             "\n".join(crawlQuery))
-            if msgBox == "yes":
-                #multiprocess_crawling(crawlQuery[0], crawlQuery[1],
-                #                      crawlQuery[2], crawlQuery[])
-                self.newWindow = tk.Toplevel(self.master)
-                self.app = RunTheCrawler(self.newWindow, self)
+            self.button3.config(state=tk.DISABLED)
+            self.newWindow = tk.Toplevel(self.master)
+            self.app = RunTheCrawler(self.newWindow, self)
+            #messagebox.askquestion()
 
     def get_info(self):
 
-        return([self.seedAddress, "\n",
-              self.depthChoice.get(), "\n",
-              self.noDomesticLinkStatus.get(), " ",
-              self.contentFilterStatus.get(),
-              "\n",
-              self.filterAddress, "\n",
-              self.parallelChoice.get(), "\n",
-              self.edgesListFilename.get(), "\n",
-              self.nodesListFilename.get(), "\n"])
+        return([self.seedAddress,
+                int(self.depthChoice.get()),
+                bool(not self.noDomesticLinkStatus.get()),
+                bool(self.contentFilterStatus.get()),
+                self.filterAddress,
+                int(self.parallelChoice.get()),
+                self.edgesListFilename.get(),
+                self.nodesListFilename.get()])
 
-        
-# TODO
+
 class RunTheCrawler:
     def __init__(self, master, mainwindow):
         self.master = master
         self.frame = tk.Frame(self.master, height = 400, width = 400)
         self.frame.pack()
-        self.label1 = tk.Label(self.frame, text = mainwindow.get_info())
-        self.label1.pack()
 
-    def close_windows(self):
-        self.master.destroy()
+        self.executeSeedAddress    = mainwindow.get_info()[0]
+        self.executeDepth          = mainwindow.get_info()[1]
+        self.executeDomesticFilter = mainwindow.get_info()[2]
+        self.executeContentFilter  = mainwindow.get_info()[3]
+        self.executeFilterAddress  = mainwindow.get_info()[4]
+        self.executeParallelChoice = mainwindow.get_info()[5]
+        self.executeEdgesListFname = mainwindow.get_info()[6]
+        self.executeNodesListFname = mainwindow.get_info()[7]
+
+        tk.Label(self.frame, text="Your crawl will have profile as "
+                                  "follows...").grid(
+            row=0, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Seed Address\t\t: " +
+                                  self.executeSeedAddress).grid(
+            row=1, column=0,columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Depth\t\t\t: " +
+                                  str(self.executeDepth)).grid(
+            row=2, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Domestic Outlinks\t\t: " +
+                                  str(self.executeDomesticFilter)).grid(
+            row=3, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Content Filter\t\t: " +
+                                  str(self.executeContentFilter)).grid(
+            row=4, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Content Filter Address\t\t: " +
+                                  str(self.executeFilterAddress)).grid(
+            row=5, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Number of Parallel Process\t: " +
+                                  str(self.executeParallelChoice)).grid(
+            row=6, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Edges List Filename\t\t: " +
+                                  self.executeEdgesListFname).grid(
+            row=7, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="Nodes List Filename\t\t: " +
+                                  self.executeNodesListFname).grid(
+            row=8, column=0, columnspan=3, sticky = tk.W)
+        tk.Label(self.frame, text="\nContinue?").grid(
+            row=9, column=0, columnspan=3, sticky = tk.N)
+
+        def run_the_crawl():
+            cancel.config(state=tk.DISABLED)
+            multiprocess_crawling(self.executeSeedAddress,
+                                  self.executeDepth,
+                                  self.executeDomesticFilter,
+                                  self.executeParallelChoice,
+                                  self.executeNodesListFname,
+                                  False,
+                                  self.executeFilterAddress)
+
+        run = tk.Button(self.frame, text = "Yes",
+                        command = run_the_crawl)
+
+        def back_to_master():
+            mainwindow.button3.config(state=tk.NORMAL)
+            self.master.destroy()
+
+        cancel = tk.Button(self.frame, text = "Back to Previous Window",
+                           command = back_to_master)
+
+        exit = tk.Button(self.frame, text="Stop Everything",
+                           command = lambda : mainwindow.master.destroy())
+        run.grid(row = 10, column = 0)
+        cancel.grid(row = 10, column = 1)
+        exit.grid(row = 10, column = 2)
 
 
 def main():
     root = tk.Tk()
-    root.geometry("350x515")
+    root.geometry("350x465")
     root.title("WebCrawler")
     root.resizable(False, False)
     app = MainWindow(root)

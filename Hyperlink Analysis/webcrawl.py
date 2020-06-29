@@ -2,13 +2,12 @@ import pandas as pd
 from selenium import webdriver
 from collections import defaultdict
 from multiprocessing import Process
+import multiprocessing as mp
 from tldextract import tldextract
 from random import shuffle
 from nltk import FreqDist, word_tokenize, pos_tag
-
-
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--incognito")
+import re
+import os
 
 
 def csv_to_list(filename):
@@ -39,11 +38,11 @@ def get_links(driver, seed):
 # Get all visible text from a webpage
 # driver : webdriver object
 # seed   : a string of a link
-def get_content(driver, seed):
+def get_contents(driver, targets):
 
     contentsList = []
-    for i in seed:
-        if i is not None:
+    for i in targets:
+        if "://" in str(i):
             try:
                 driver.get(i)
                 contentsList.append(
@@ -59,69 +58,93 @@ def get_content(driver, seed):
 
 def check_directions(source, linksList, withinDomain):
 
-    domainRequirement = []
+    filteredLinks = []
 
-    tldSource = (tldextract.extract(source))
     if not withinDomain:
+        tldSource = (tldextract.extract(source))
         for i in linksList:
             tldTarget = (tldextract.extract(i))
-            # tldSource.subdomain != tldSource.subdomain
-            if tldSource.domain.lower() == tldTarget.domain.lower() and \
-                    tldSource.suffix.lower() == tldTarget.suffix.lower():
+            if tldSource.domain.lower() != tldTarget.domain.lower() or \
+                    tldSource.suffix.lower() != tldTarget.suffix.lower():
 
-                domainRequirement.append(False)
+                filteredLinks.append(i)
 
+    else:
+        return linksList
+
+    return filteredLinks
+
+
+# this turns a string query to search for content
+# contentsList = string in each website visited
+# filename      = from GUI, csv file of a query
+def check_contents(contentsList, filename = ''):
+
+    if filename != '':
+        filteredContents = []
+        with open(filename) as f:
+            query = f.read()
+
+        for i in contentsList:
+            if eval(re.sub(r"([a-zA-Z]\')", r"\1 in i", query)):
+                filteredContents.append(i)
             else:
-                domainRequirement.append(True)
+                filteredContents.append("Query did not match with content")
+
+        return filteredContents
     else:
-        domainRequirement = [True for i in range(len(linksList))]
-
-    return domainRequirement
+        return contentsList
 
 
-def check_contents(keywords, contentsList, minKeywords):
+# Main function for web crawling
+# seeds        = list of seed links
+# depth        = how deep recursively the crawl will be
+# driver       = webdriver bots
+# withinDomain = whether it'll crawl out-links within the same domain
+# minKeywords  = how many keywords need to match the content
+# keywords     = keywords that will filter the crawl
+# filename      = the filename of its output
+def web_crawler(seeds, depth, driver, withinDomain,
+                return_dict, procnum, filterAddress = None):
 
-    contentRequirement = []
+    ALLSOURCE  = []
+    ALLTARGET  = []
+    ALLDEPTH   = []
+    ALLCONTENT = []
 
-    if keywords is not None:
-        for j in contentsList:
-            count = 0
-            for k in keywords:
-                if k in j:
-                    count += 1
-            contentRequirement.append(count >= minKeywords)
-    else:
-        contentRequirement = [True for j in range(len(contentsList))]
+    trueDepth = depth
+    while depth > 0:
+        layerSource = []; layerTarget = []
+        layerContent = []; layerDepth = []
 
-    return contentRequirement
+        for seed in seeds:
+            filteredLinks = check_directions(
+                seed, get_links(driver, seed), withinDomain)
+            filteredContents = check_contents(
+                get_contents(driver, filteredLinks), filterAddress)
 
+            sourceList = [trueDepth - depth for i in range(len(filteredLinks))]
+            depthLabel = [depth for i in range(len(filteredLinks))]
 
-# Filter for the crawler; filtering domestic out-links and contents
-# source       = the source of outlinks
-# linkslist    = outlinks from the source
-# contentsList = contents of the outlinks
-# withinDomain = whether to crawl outlinks of same domain with the source
-# minKeywords  = minimum number of MATCHING keywords required to be in
-#                the text content of a website
-# keywords     = words / phrase / sentence need to be present in the content
-def crawling_filter(domainRequirement, contentRequirement,
-                    linksList, contentsList):
+            layerSource.extend(sourceList)
+            layerTarget.extend(filteredLinks)
+            layerContent.extend(filteredContents)
+            layerDepth.extend(depthLabel)
 
-    assert len(linksList) == len(contentsList)
+        ALLSOURCE.extend(layerSource)
+        ALLTARGET.extend(layerTarget)
+        ALLDEPTH.extend(layerDepth)
+        ALLCONTENT.extend(layerContent)
 
-    newLinksList = []; newContentsList = []
+        seeds = layerTarget
+        depth -= 1
 
-    for m, n in zip([d and c for d, c in zip(domainRequirement,
-                                             contentRequirement)],
-                    range(len(linksList))):
-        if m:
-            newLinksList.append(linksList[n])
-            newContentsList.append(contentsList[n])
-
-    del domainRequirement; del contentRequirement
-
-    assert len(newLinksList) == len(newContentsList)
-    return newLinksList, newContentsList
+    driver.close()
+    return_dict[procnum] = pd.DataFrame({"source" : ALLSOURCE,
+                                          "target" : ALLTARGET,
+                                          "depth"  : ALLDEPTH,
+                                          "targetcontent": ALLCONTENT})
+    #save_files(ALLSOURCE, ALLTARGET, ALLCONTENT, ALLDEPTH, filename)
 
 
 # Saving output in csv format; ready for most network analysis software
@@ -141,7 +164,7 @@ def save_files(mainSource, mainTarget, mainContent, mainDepth, filename):
         "target": mainTarget,
         "targetcontent": mainContent})
 
-    df.to_csv(filename, index=False, sep=',')
+    df.to_csv(filename + '.csv', index=False, sep=',')
     del df
 
 
@@ -179,70 +202,39 @@ def split_seeds(seed_list, n_split):
         yield container[i::n_split]
 
 
-# Main function for web crawling
-# seeds        = list of seed links
-# depth        = how deep recursively the crawl will be
-# driver       = webdriver bots
-# withinDomain = whether it'll crawl out-links within the same domain
-# minKeywords  = how many keywords need to match the content
-# keywords     = keywords that will filter the crawl
-# filename      = the filename of its output
-def web_crawler(seeds, depth, driver, withinDomain,
-                minKeywords, filename, keywords = None):
+def multiprocess_crawling(seedAddress, depth, withinDomain,
+                          n_bots, outputFname, headless = False,
+                          filterAddress = None):
 
-    depthCounter = depth
-    mainSource = []; mainTarget = []
-    mainContent = []; mainDepth = []
+    seeds = csv_to_list(seedAddress)
+    scrambledSeeds = split_seeds(seeds, n_bots)
 
-    while depth > 0:
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--mute-audio")
+    dirPath = os.path.dirname(os.path.realpath(__file__))
+    if headless:
+        chrome_options.add_argument("--headless")
+    manager = mp.Manager()
+    returnVal = manager.dict()
+    jobs = []
+    botsList = []
+    for k in range(1, n_bots + 1):
+        botsList.append(webdriver.Chrome(
+            executable_path=dirPath + "/chromedriver" + str(k),
+            options = chrome_options))
+    for i, j in zip(scrambledSeeds, list(range(n_bots))):
 
-        layerSource  = []; layerTarget = []
-        layerContent = []; layerDepth  = []
-
-        for seed in seeds:
-            links    = get_links(driver, seed)
-            contents = get_content(driver, links)
-
-            filteredLinks, filteredContents = \
-                crawling_filter(seed, links, contents, withinDomain,
-                                minKeywords, keywords)
-            sourceList = [seed for i in range(len(filteredLinks))]
-            depthLabel = [depthCounter - depth
-                          for i in range(len(filteredLinks))]
-
-            layerSource.extend(sourceList)
-            layerTarget.extend(filteredLinks)
-            layerContent.extend(filteredContents)
-            layerDepth.extend(depthLabel)
-
-        mainSource.extend(layerSource)
-        mainTarget.extend(layerTarget)
-        mainContent.extend(layerContent)
-        mainDepth.extend(layerDepth)
-
-        seeds = layerTarget; depth -= 1
-
-    save_files(mainSource, mainTarget, mainContent, mainDepth, filename)
-
-    driver.close()
-
-
-# No join here so that the main process can complete before child process does
-def multiprocess_crawling(seeds, depth, withinDomain, minKeywords, filename,
-                          n_bots, headless, keywords = None):
-
-    for i, j, k in zip(load_bots(n_bots, headless),  # by the end of this line,
-                                                     #   the bots has been
-                                                     #   initiated
-
-                       split_seeds(seeds, n_bots),   # shuffling and splitting
-                                                     #   the seed links
-
-                       range(1, n_bots + 1)):        # number of multiprocess
         p = Process(target = web_crawler,
-                    args = (j, depth, i, withinDomain, minKeywords, filename
-                            + str(k), keywords))
-        p.start()                                    # Starting the engine
+                    args = (i, depth, botsList[j], withinDomain,
+                            returnVal, j, filterAddress))
+        jobs.append(p)
+        p.start()
+    for proc in jobs:
+        proc.join()
+
+    dat = pd.concat(returnVal.values())
+    dat.to_csv(outputFname, index = False, sep=',')
 
 
 # AUXILIARY FUNCTION
@@ -283,14 +275,3 @@ def word_counter(seed, content):
     df['frequency'] = df.index
 
     return df
-
-
-# TODO
-def check_contents_alt(keywords, contentsList, filename):
-
-    with open(filename) as f:
-        s = f.read()
-
-
-if __name__ == "__main__":
-    pass
