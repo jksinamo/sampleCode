@@ -1,4 +1,4 @@
-**Status:** Under development. webcrawl works as intended, will add UI for the apps soon.
+**Status:** Under development. webcrawl works as intended, will fix UI for the apps soon.
 
 ![](webcrawl.gif)
 
