@@ -6,9 +6,8 @@
 - Open terminal / command prompt and browse into the Hyperlink Analysis folder
 - type: python MainWindow.py 
 - A window for the app will appear, you can try few settings for webcrawling. Enjoy! 
-
 ![](webcrawl.gif)
-![](https://media.giphy.com/media/MEdVA1ElEbfvGypbXg/giphy.gif)
+![](https://media.giphy.com/media/MEdVA1ElEbfvGypbXg/giphy.gif =1080x768)
 **Disclaimer:** This is NOT the entirity of a kit needed for hyperlink analysis, rather a crawler to fetch an appropriate set of data for calculations of hyperlink analysis. Such kit for calculations of network centralities and measurements are available via NetworkX package in Python which accept the output resulted from my code. Also, I'm experimenting on using outlinks only and compensating it by enabling crawling for virtually unlimited number of steps (depending on time and # of CPU you have). There are similar tool availabe via web interface at issuecrawler.net or Voson Uberlink, however they're limited to at most 4 steps crawling (from the initial seed links).
 
 **Dummy sites I created to test functions:**
