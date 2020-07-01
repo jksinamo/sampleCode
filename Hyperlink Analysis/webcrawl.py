@@ -78,9 +78,9 @@ def check_directions(source, linksList, withinDomain):
 # this turns a string query to search for content
 # contentsList = string in each website visited
 # filename      = from GUI, csv file of a query
-def check_contents(contentsList, filename = ''):
+def check_contents(contentsList, filename = None):
 
-    if filename != '':
+    if filename is not None:
         filteredContents = []
         with open(filename) as f:
             query = f.read()
@@ -105,7 +105,7 @@ def check_contents(contentsList, filename = ''):
 # keywords     = keywords that will filter the crawl
 # filename      = the filename of its output
 def web_crawler(seeds, depth, driver, withinDomain,
-                return_dict, procnum, filterAddress = None):
+                container, procnum, filterAddress = None):
 
     ALLSOURCE  = []
     ALLTARGET  = []
@@ -123,8 +123,9 @@ def web_crawler(seeds, depth, driver, withinDomain,
             filteredContents = check_contents(
                 get_contents(driver, filteredLinks), filterAddress)
 
-            sourceList = [trueDepth - depth for i in range(len(filteredLinks))]
-            depthLabel = [depth for i in range(len(filteredLinks))]
+            sourceList = [seed for i in range(len(filteredLinks))]
+            depthLabel = [trueDepth - depth + 1 for i in range(len(
+                filteredLinks))]
 
             layerSource.extend(sourceList)
             layerTarget.extend(filteredLinks)
@@ -139,12 +140,19 @@ def web_crawler(seeds, depth, driver, withinDomain,
         seeds = layerTarget
         depth -= 1
 
+    # information
+    ALLSOURCE.extend(["INITIAL SEED" for i in seeds])
+    ALLTARGET.extend(seeds)
+    ALLDEPTH.extend([0 for i in seeds])
+    ALLCONTENT.extend(get_contents(driver, seeds))
+
+    container[procnum] = pd.DataFrame({"source" : ALLSOURCE,
+                                       "target" : ALLTARGET,
+                                       "depth"  : ALLDEPTH,
+                                       "targetcontent": ALLCONTENT})
+
     driver.close()
-    return_dict[procnum] = pd.DataFrame({"source" : ALLSOURCE,
-                                          "target" : ALLTARGET,
-                                          "depth"  : ALLDEPTH,
-                                          "targetcontent": ALLCONTENT})
-    #save_files(ALLSOURCE, ALLTARGET, ALLCONTENT, ALLDEPTH, filename)
+    driver.quit()
 
 
 # Saving output in csv format; ready for most network analysis software
@@ -203,8 +211,7 @@ def split_seeds(seed_list, n_split):
 
 
 def multiprocess_crawling(seedAddress, depth, withinDomain,
-                          n_bots, outputFname, headless = False,
-                          filterAddress = None):
+                          n_bots, outputFname, filterAddress = None):
 
     seeds = csv_to_list(seedAddress)
     scrambledSeeds = split_seeds(seeds, n_bots)
@@ -212,11 +219,12 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--mute-audio")
+    #chrome_options.add_argument("--headless")
+
     dirPath = os.path.dirname(os.path.realpath(__file__))
-    if headless:
-        chrome_options.add_argument("--headless")
+
     manager = mp.Manager()
-    returnVal = manager.dict()
+    container = manager.dict()
     jobs = []
     botsList = []
     for k in range(1, n_bots + 1):
@@ -227,14 +235,14 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
 
         p = Process(target = web_crawler,
                     args = (i, depth, botsList[j], withinDomain,
-                            returnVal, j, filterAddress))
+                            container, j, filterAddress))
         jobs.append(p)
         p.start()
     for proc in jobs:
         proc.join()
 
-    dat = pd.concat(returnVal.values())
-    dat.to_csv(outputFname, index = False, sep=',')
+    data = pd.concat(container.values())
+    data.to_csv(outputFname, index = False, sep=',')
 
 
 # AUXILIARY FUNCTION
