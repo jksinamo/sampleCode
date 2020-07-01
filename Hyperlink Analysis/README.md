@@ -1,11 +1,15 @@
-**Status:** Under development. webcrawl works as intended, will fix UI for the apps soon.
+**Status:** OK
+
+**How to easily run this?** 
+1a. Download the zip of the entire repo
+1b. Make sure you have chrome browser in your computer and four chromedrivers to the version of your chrome browser, I have included them in the folder (if your chrome browser is ver. 83, you don't need to download them). Other versions available at:https://chromedriver.chromium.org/. You can download one and duplicate/copy-paste them 4 times and rename them chromedrivers1 .... chromedrivers4 and put it in the Hyperlink Analysis folder you downloaded from this repo
+2. Open terminal / command prompt and browse into the Hyperlink Analysis folder
+3. type: python MainWindow.py 
+4. A window for the app will appear, you can try few settings for webcrawling. Enjoy! 
 
 ![](webcrawl.gif)
 
 **Disclaimer:** This is NOT the entirity of a kit needed for hyperlink analysis, rather a crawler to fetch an appropriate set of data for calculations of hyperlink analysis. Such kit for calculations of network centralities and measurements are available via NetworkX package in Python which accept the output resulted from my code. Also, I'm experimenting on using outlinks only and compensating it by enabling crawling for virtually unlimited number of steps (depending on time and # of CPU you have). There are similar tool availabe via web interface at issuecrawler.net or Voson Uberlink, however they're limited to at most 4 steps crawling (from the initial seed links).
-
-In addition to libraries, you will also need chromedriver in the version of your Chrome browser. 
-Available at:https://chromedriver.chromium.org/
 
 **Dummy sites I created to test functions:**
 - https:sites.google.com/view/crawlingtestunit1
@@ -13,6 +17,5 @@ Available at:https://chromedriver.chromium.org/
 - https:sites.google.com/view/crawlingtestunit3
 
 **What's next :**
-- Build & test GUI for the app using tkinter 
 - Adding more test cases to webcrawl_test
 - Testing it on anti-vaccine online community
