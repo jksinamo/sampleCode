@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from webcrawl import *
-import time
+import threading
+import sys
 
 
 class MainWindow:
@@ -238,34 +239,40 @@ class RunTheCrawler:
         tk.Label(self.frame, text="\nContinue?").grid(
             row=8, column=0, columnspan=3, sticky = tk.N)
 
+        thr = threading.Thread(target=multiprocess_crawling,
+                               args=(self.executeSeedAddress,
+                                     self.executeDepth,
+                                     self.executeDomesticFilter,
+                                     self.executeParallelChoice,
+                                     self.executeOutputFilename,
+                                     self.executeFilterAddress))
+
         def run_the_crawl():
             cancel.config(state=tk.DISABLED)
-            startTime = time.time()
-            multiprocess_crawling(self.executeSeedAddress,
-                                  self.executeDepth,
-                                  self.executeDomesticFilter,
-                                  self.executeParallelChoice,
-                                  self.executeOutputFilename,
-                                  self.executeFilterAddress)
-            endTime = time.time()
-            messagebox.showinfo(message="Your crawl has finished!\n"
-                                        f"Elapsed time = {endTime - startTime}")
+            #thr.daemon = True
+            thr.start()
+
+        run = tk.Button(self.frame, text = "Yes", command = run_the_crawl)
 
         def back_to_master():
             mainwindow.executeCrawlingButton.config(state=tk.NORMAL)
             self.master.destroy()
 
-        run = tk.Button(self.frame, text = "Yes", command = run_the_crawl)
-
         cancel = tk.Button(self.frame, text = "Back to Previous Window",
                            command = back_to_master)
 
-        exit = tk.Button(self.frame, text="Stop Everything",
-                         command = lambda : mainwindow.master.destroy())
+        def exit_everything():
+
+            for bot in botsList:
+                bot.quit()
+            sys.exit()
+
+        exitApp = tk.Button(self.frame, text="Stop Everything",
+                            command = exit_everything)
 
         run.grid(   row = 10, column = 0)
         cancel.grid(row = 10, column = 1)
-        exit.grid(  row = 10, column = 2)
+        exitApp.grid(  row = 10, column = 2)
 
 
 def main():

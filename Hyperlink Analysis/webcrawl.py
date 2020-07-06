@@ -8,6 +8,11 @@ from random import shuffle
 from nltk import FreqDist, word_tokenize, pos_tag
 import re
 import os
+import time
+from tkinter import messagebox
+
+
+botsList = []
 
 
 def csv_to_list(filename):
@@ -113,6 +118,8 @@ def web_crawler(seeds, depth, driver, withinDomain,
     ALLCONTENT = []
 
     trueDepth = depth
+    initialNodes = seeds
+
     while depth > 0:
         layerSource = []; layerTarget = []
         layerContent = []; layerDepth = []
@@ -141,10 +148,10 @@ def web_crawler(seeds, depth, driver, withinDomain,
         depth -= 1
 
     # information
-    ALLSOURCE.extend(["INITIAL SEED" for i in seeds])
-    ALLTARGET.extend(seeds)
-    ALLDEPTH.extend([0 for i in seeds])
-    ALLCONTENT.extend(get_contents(driver, seeds))
+    ALLSOURCE.extend(["INITIAL SEED" for i in initialNodes])
+    ALLTARGET.extend(initialNodes)
+    ALLDEPTH.extend([0 for i in initialNodes])
+    ALLCONTENT.extend(get_contents(driver, initialNodes))
 
     container[procnum] = pd.DataFrame({"source" : ALLSOURCE,
                                        "target" : ALLTARGET,
@@ -187,15 +194,14 @@ def load_bots(n_bots, headless = False):
     if headless:
         chrome_options.add_argument("--headless")
 
-    botList = []
-
+    global botsList
     for i in range(1, n_bots + 1):
-        botList.append(webdriver.Chrome(
+        botsList.append(webdriver.Chrome(
             executable_path="/Users/joshuakevinsinamo/"
                             "PycharmProjects/hyperlinkminer/chromedriver" +
                             str(i), options=chrome_options))
 
-    return botList
+    return botsList
 
 
 # Splitting seed links to n split (depending on # of parallel process)
@@ -213,6 +219,7 @@ def split_seeds(seed_list, n_split):
 def multiprocess_crawling(seedAddress, depth, withinDomain,
                           n_bots, outputFname, filterAddress = None):
 
+    startTime = time.time()
     seeds = csv_to_list(seedAddress)
     scrambledSeeds = split_seeds(seeds, n_bots)
 
@@ -220,13 +227,15 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--mute-audio")
     #chrome_options.add_argument("--headless")
-
+    chrome_options.add_argument("--disable-gpu")
     dirPath = os.path.dirname(os.path.realpath(__file__))
 
     manager = mp.Manager()
     container = manager.dict()
     jobs = []
-    botsList = []
+
+    global botsList
+
     for k in range(1, n_bots + 1):
         botsList.append(webdriver.Chrome(
             executable_path=dirPath + "/chromedriver" + str(k),
@@ -243,6 +252,9 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
 
     data = pd.concat(container.values())
     data.to_csv(outputFname, index = False, sep=',')
+    endTime = time.time()
+    messagebox.showinfo(message="Your crawl has finished!\n"
+                                f"Elapsed time = {endTime - startTime}")
 
 
 # AUXILIARY FUNCTION
