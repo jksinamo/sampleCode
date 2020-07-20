@@ -2,7 +2,7 @@
 
 These are compilations of my code in both R and Python. More will be added to the repo as necessary. 
 
-- Hyperlink Analysis : Python implementation of recursive web-crawling and scraping
+Hyperlink Analysis : Python implementation of recursive web-crawling and scraping
 
 Status: OK
 
@@ -12,5 +12,6 @@ TODO:
 - Different versions for the app
 
 
-- Rasch Experiment   : Reproducible appendix of model comparison in R 
+
+Rasch Experiment   : Reproducible appendix of model comparison in R 
 
