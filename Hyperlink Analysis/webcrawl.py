@@ -10,10 +10,11 @@ import re
 import os
 import time
 from tkinter import messagebox
+import config
 
 
 botsList = []
-
+stopThis = False
 
 def csv_to_list(filename):
 
@@ -23,9 +24,6 @@ def csv_to_list(filename):
     return data
 
 
-# Get all visible links from a webpage
-# driver : webdriver object
-# seed   : a string of a link
 def get_links(driver, seed):
     linksList = []
     try:
@@ -40,65 +38,64 @@ def get_links(driver, seed):
     return linksList
 
 
-# Get all visible text from a webpage
-# driver : webdriver object
-# seed   : a string of a link
-def get_contents(driver, targets):
+def get_contents(driver, target):
 
-    contentsList = []
-    for i in targets:
-        if "://" in str(i):
-            try:
-                driver.get(i)
-                contentsList.append(
-                    str(driver.find_element_by_tag_name("body").text))
+    content = "ERROR"
+    if "://" in str(target):
+        try:
+            driver.get(target)
+            content = driver.find_element_by_tag_name("body").text
 
-            except Exception as e:
-                contentsList.append(e.args)
-        else:
-            contentsList.append("LINK NOT FOUND")
+        except Exception as e:
+            print(e.args)
 
-    return contentsList
+    return content
 
 
-def check_directions(source, linksList, withinDomain):
+def direction_is_OK(tldSource, target, withinDomain):
 
-    filteredLinks = []
-
+    # if we don't want any domestic outlinks
     if not withinDomain:
-        tldSource = (tldextract.extract(source))
-        for i in linksList:
-            tldTarget = (tldextract.extract(i))
-            if tldSource.domain.lower() != tldTarget.domain.lower() or \
-                    tldSource.suffix.lower() != tldTarget.suffix.lower():
 
-                filteredLinks.append(i)
+        tldTarget = (tldextract.extract(target))
 
+        # check whether website name and website suffix (.com, .edu, etc)
+        # are the same
+        return tldSource.domain.lower() != tldTarget.domain.lower() or \
+            tldSource.suffix.lower() != tldTarget.suffix.lower()
+
+    # if we want domestic outlinks
+    # WARNING: THIS WILL MAKE THE PROCESS EXPONENTIALLY LARGER
     else:
-        return linksList
-
-    return filteredLinks
+        return True
 
 
 # this turns a string query to search for content
 # contentsList = string in each website visited
 # filename      = from GUI, csv file of a query
-def check_contents(contentsList, filename = None):
+def content_is_OK(content, query):
 
-    if filename is not None:
-        filteredContents = []
-        with open(filename) as f:
-            query = f.read()
+    if (query is not None
+        and eval(re.sub(r"([a-zA-Z0-9]\')", r"\1 in content", query)))\
+            or query is None:
 
-        for i in contentsList:
-            if eval(re.sub(r"([a-zA-Z]\')", r"\1 in i", query)):
-                filteredContents.append(i)
-            else:
-                filteredContents.append("Query did not match with content")
+        return True
 
-        return filteredContents
     else:
-        return contentsList
+        return False
+
+        # Changing string query to evaluable pythonic statement
+        # For example :  "('word1' and 'word2') or 'word3'"
+        #             :  will be ('word1' in content and 'word2' in content)
+        #             :           or 'word3' in content
+    #    if eval(re.sub(r"([a-zA-Z0-9]\')", r"\1 in content", query)):
+    #        return True
+
+    #    else:
+    #        return False
+
+    #else:
+    #    return True
 
 
 # Main function for web crawling
@@ -109,57 +106,36 @@ def check_contents(contentsList, filename = None):
 # minKeywords  = how many keywords need to match the content
 # keywords     = keywords that will filter the crawl
 # filename      = the filename of its output
+
 def web_crawler(seeds, depth, driver, withinDomain,
-                container, procnum, filterAddress = None):
+                edgesDict, nodesDict, nextSource, filterAddress = None):
 
-    ALLSOURCE  = []
-    ALLTARGET  = []
-    ALLDEPTH   = []
-    ALLCONTENT = []
+    query = None
+    if filterAddress is not None:
+        with open(filterAddress) as f:
+            query = f.read()
 
-    trueDepth = depth
-    initialNodes = seeds
+    for seed in seeds:
 
-    while depth > 0:
-        layerSource = []; layerTarget = []
-        layerContent = []; layerDepth = []
+        tldSource = (tldextract.extract(seed))
+        for i in get_links(driver, seed):
 
-        for seed in seeds:
-            filteredLinks = check_directions(
-                seed, get_links(driver, seed), withinDomain)
-            filteredContents = check_contents(
-                get_contents(driver, filteredLinks), filterAddress)
+            if not config.stopThis:
+                if (seed, i) in edgesDict:
+                    edgesDict[(seed, i)] += 1
 
-            sourceList = [seed for i in range(len(filteredLinks))]
-            depthLabel = [trueDepth - depth + 1 for i in range(len(
-                filteredLinks))]
+                else:
+                    if direction_is_OK(tldSource, i, withinDomain):
+                        potentialContent = get_contents(driver, i)
 
-            layerSource.extend(sourceList)
-            layerTarget.extend(filteredLinks)
-            layerContent.extend(filteredContents)
-            layerDepth.extend(depthLabel)
+                        if content_is_OK(potentialContent, query):
+                            edgesDict[(seed, i)] = 1
+                            if i not in nodesDict:
+                                nextSource.append(i)
+                                nodesDict[i] = (depth, potentialContent)
 
-        ALLSOURCE.extend(layerSource)
-        ALLTARGET.extend(layerTarget)
-        ALLDEPTH.extend(layerDepth)
-        ALLCONTENT.extend(layerContent)
-
-        seeds = layerTarget
-        depth -= 1
-
-    # information
-    ALLSOURCE.extend(["INITIAL SEED" for i in initialNodes])
-    ALLTARGET.extend(initialNodes)
-    ALLDEPTH.extend([0 for i in initialNodes])
-    ALLCONTENT.extend(get_contents(driver, initialNodes))
-
-    container[procnum] = pd.DataFrame({"source" : ALLSOURCE,
-                                       "target" : ALLTARGET,
-                                       "depth"  : ALLDEPTH,
-                                       "targetcontent": ALLCONTENT})
-
-    driver.close()
-    driver.quit()
+            else:
+                return
 
 
 # Saving output in csv format; ready for most network analysis software
@@ -168,40 +144,18 @@ def web_crawler(seeds, depth, driver, withinDomain,
 # mainTarget = list of all outlinks
 # mainDepth  = depth position of the target / outlinks
 # filename    = filename of our outputs
-def save_files(mainSource, mainTarget, mainContent, mainDepth, filename):
+def save_files(edgesDict, nodesDict, edgesFilename, nodesFilename):
 
-    assert len(mainSource) == len(mainTarget) == \
-           len(mainContent) == len(mainDepth)
+    edgesFile = pd.DataFrame(dict(edgesDict), index=[0]).T.reset_index()
+    nodesFile = pd.DataFrame(dict(nodesDict)).T.reset_index()
 
-    df = pd.DataFrame({
-        "depth" : mainDepth,
-        "source": mainSource,
-        "target": mainTarget,
-        "targetcontent": mainContent})
+    edgesFile.columns = ["source", "target", "weight"]
+    nodesFile.columns = ["site", "depth", "content"]
 
-    df.to_csv(filename + '.csv', index=False, sep=',')
-    del df
+    edgesFile.to_csv(edgesFilename + '.csv', index=False, sep=',')
+    nodesFile.to_csv(nodesFilename + '.csv', index=False, sep=',')
 
-
-# Preparing and starting webdriver bots for parallel processing
-# n_bots : number of parallel process desired (no more than 4 at this time)
-def load_bots(n_bots, headless = False):
-
-    # settings for the drivers
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--incognito")
-
-    if headless:
-        chrome_options.add_argument("--headless")
-
-    global botsList
-    for i in range(1, n_bots + 1):
-        botsList.append(webdriver.Chrome(
-            executable_path="/Users/joshuakevinsinamo/"
-                            "PycharmProjects/hyperlinkminer/chromedriver" +
-                            str(i), options=chrome_options))
-
-    return botsList
+    del edgesFile; del nodesFile
 
 
 # Splitting seed links to n split (depending on # of parallel process)
@@ -214,47 +168,6 @@ def split_seeds(seed_list, n_split):
 
     for i in range(0, n_split):
         yield container[i::n_split]
-
-
-def multiprocess_crawling(seedAddress, depth, withinDomain,
-                          n_bots, outputFname, filterAddress = None):
-
-    startTime = time.time()
-    seeds = csv_to_list(seedAddress)
-    scrambledSeeds = split_seeds(seeds, n_bots)
-
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--incognito")
-    chrome_options.add_argument("--mute-audio")
-    #chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    dirPath = os.path.dirname(os.path.realpath(__file__))
-
-    manager = mp.Manager()
-    container = manager.dict()
-    jobs = []
-
-    global botsList
-
-    for k in range(1, n_bots + 1):
-        botsList.append(webdriver.Chrome(
-            executable_path=dirPath + "/chromedriver" + str(k),
-            options = chrome_options))
-    for i, j in zip(scrambledSeeds, list(range(n_bots))):
-
-        p = Process(target = web_crawler,
-                    args = (i, depth, botsList[j], withinDomain,
-                            container, j, filterAddress))
-        jobs.append(p)
-        p.start()
-    for proc in jobs:
-        proc.join()
-
-    data = pd.concat(container.values())
-    data.to_csv(outputFname, index = False, sep=',')
-    endTime = time.time()
-    messagebox.showinfo(message="Your crawl has finished!\n"
-                                f"Elapsed time = {endTime - startTime}")
 
 
 # AUXILIARY FUNCTION
@@ -295,3 +208,61 @@ def word_counter(seed, content):
     df['frequency'] = df.index
 
     return df
+
+
+def multiprocess_crawling(seedAddress, depth, withinDomain,
+                          n_bots, edgesFilename, nodesFilename,
+                          filterAddress = None):
+
+    config.startTime = time.time()
+    seeds = csv_to_list(seedAddress)
+    scrambledSeeds = split_seeds(seeds, n_bots)
+
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--mute-audio")
+    chrome_options.add_argument("--disable-gpu")
+    dirPath = os.path.dirname(os.path.realpath(__file__))
+
+    mainManager = mp.Manager()
+    edgesDict = mainManager.dict()
+    nodesDict = mainManager.dict()
+
+    for k in range(1, n_bots + 1):
+        config.botsList.append(webdriver.Chrome(
+            executable_path=dirPath + "/chromedriver" + str(k),
+            options = chrome_options))
+
+    trueDepth = depth
+    while depth > 0:
+
+        manager = mp.Manager()
+        nextSource = manager.list()
+
+        for subList, bot in zip(scrambledSeeds, config.botsList):
+
+            p = Process(target = web_crawler,
+                        args = (subList, trueDepth - depth + 1,
+                                bot, withinDomain, edgesDict, nodesDict,
+                                nextSource, filterAddress))
+            config.jobs.append(p)
+            p.start()
+
+        for proc in config.jobs:
+            proc.join()
+
+        scrambledSeeds = split_seeds(nextSource, n_bots)
+        depth -= 1
+
+    if not config.stopThis:
+
+        for bot in config.botsList:
+            bot.quit()
+
+        save_files(edgesDict, nodesDict, edgesFilename, nodesFilename)
+
+    config.endTime = time.time()
+
+
+
+
