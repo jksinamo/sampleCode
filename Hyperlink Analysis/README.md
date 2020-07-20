@@ -9,7 +9,8 @@
 ![](webcrawl.gif)
 
 **Overview**
-<img src="mainwindow.png" width="100" height="100">
+
+<img src="mainwindow.png" width="350" height="465">
 
 - "Load your seed file": press the button to browse your seed file
   - Seed file must be in csv format 
