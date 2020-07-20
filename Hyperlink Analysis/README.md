@@ -9,7 +9,7 @@
 ![](webcrawl.gif)
 
 **Overview**
-![](mainwindow.png)
+![](mainwindow.png = 500x500)
 - "Load your seed file": press the button to browse your seed file
   - Seed file must be in csv format 
 - "Crawling depth" : drop-down to select your desired crawling depth. Technically, the limit can be set to unlimited, but at this stage, the limit is set on 10
