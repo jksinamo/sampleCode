@@ -40,4 +40,5 @@ Example on how it looks on Mac:
 
 **What's next :**
 - Adding more test cases to webcrawl_test
+- Create a standalone for Mac and Windows
 - Testing it on anti-vaccine online community
