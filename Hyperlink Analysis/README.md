@@ -26,6 +26,7 @@
    
 
 When the box for disclaimer has been selected, press the "run the crawl" button. You will see this window upon pressing the button:
+<br>
 <img src="review.png" width="716" height="306" align = "center">
 <br>
 Press "yes" to execute the crawl, or if you're unsure of the profile, press "back to previous window". If you need to kill the crawling process immediately, "stop everything" button will be enabled after crawl is executed.
