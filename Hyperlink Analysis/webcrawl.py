@@ -13,9 +13,8 @@ from tkinter import messagebox
 import config
 
 
-botsList = []
-stopThis = False
-
+# Convert csv to list
+# filename = absolute path (in str) to your fiilename
 def csv_to_list(filename):
 
     with open(str(filename), 'r') as f:
@@ -24,20 +23,29 @@ def csv_to_list(filename):
     return data
 
 
+# Get all links inside a webpage
+# driver = webdriver (chrome)
+# seed   = string of webpage link
 def get_links(driver, seed):
     linksList = []
     try:
+        # open the webpage
         driver.get(seed)
 
+        # get all links inside that webpage
         linksList = [str(link.get_attribute("href")) for link in
                      driver.find_elements_by_partial_link_text("")]
 
+    # if website can't be opened, print the error
     except Exception as e:
         print(e.args)
 
     return linksList
 
 
+# Get all TEXT content inside a webpage in string
+# driver = webdriver (chrome)
+# target = website which text content to be extracted
 def get_contents(driver, target):
 
     content = "ERROR"
@@ -52,6 +60,10 @@ def get_contents(driver, target):
     return content
 
 
+# Check whether the edge respect the domestic outlink restriction (if any)
+# tldSource    = tuple of top domain & suffix name
+# target       = string of target link
+# withinDomain = user input from tkinter on whether they want domestic outlinks
 def direction_is_OK(tldSource, target, withinDomain):
 
     # if we don't want any domestic outlinks
@@ -73,7 +85,12 @@ def direction_is_OK(tldSource, target, withinDomain):
 # this turns a string query to search for content
 # contentsList = string in each website visited
 # filename      = from GUI, csv file of a query
-def content_is_OK(content, query):
+def content_is_OK(content, query = None):
+
+    # Changing string query to evaluable pythonic statement
+    # For example :  "('word1' and 'word2') or 'word3'"
+    #             :  will be ('word1' in content and 'word2' in content)
+    #             :           or 'word3' in content
 
     if (query is not None
         and eval(re.sub(r"([a-zA-Z0-9]\')", r"\1 in content", query)))\
@@ -81,69 +98,71 @@ def content_is_OK(content, query):
 
         return True
 
+    # if query doesn't match
     else:
         return False
-
-        # Changing string query to evaluable pythonic statement
-        # For example :  "('word1' and 'word2') or 'word3'"
-        #             :  will be ('word1' in content and 'word2' in content)
-        #             :           or 'word3' in content
-    #    if eval(re.sub(r"([a-zA-Z0-9]\')", r"\1 in content", query)):
-    #        return True
-
-    #    else:
-    #        return False
-
-    #else:
-    #    return True
 
 
 # Main function for web crawling
 # seeds        = list of seed links
 # depth        = how deep recursively the crawl will be
-# driver       = webdriver bots
+# driver       = webdriver bot
 # withinDomain = whether it'll crawl out-links within the same domain
-# minKeywords  = how many keywords need to match the content
-# keywords     = keywords that will filter the crawl
-# filename      = the filename of its output
-
+# edgesDict    = dictonary for edges to be shared between main processes
+# nodesDict    = dictionary for nodes to be shared between main processes
+# nextSource   = list of potential targets to be shared between sub-processes
+# filterAddress = File address of the filter file (string)
 def web_crawler(seeds, depth, driver, withinDomain,
                 edgesDict, nodesDict, nextSource, filterAddress = None):
 
-    query = None
+    # set query to None as default value
     if filterAddress is not None:
         with open(filterAddress) as f:
             query = f.read()
 
     for seed in seeds:
 
+        # get toplevel domain & suffix name
         tldSource = (tldextract.extract(seed))
         for i in get_links(driver, seed):
 
+            # if status is OK; stopThis is used to stop the app immediately
+            # as tracer (with 5sec max delay estimated)
             if not config.stopThis:
                 if (seed, i) in edgesDict:
+                    # add weight if the edge is already exist in the edges dict
                     edgesDict[(seed, i)] += 1
 
                 else:
+                    # check whether the node is a domestic outlinks
+                    # and whether it aligns with the crawling parameter
                     if direction_is_OK(tldSource, i, withinDomain):
                         potentialContent = get_contents(driver, i)
 
+                        # check whether the content fit with query
                         if content_is_OK(potentialContent, query):
                             edgesDict[(seed, i)] = 1
-                            if i not in nodesDict:
+
+                            # check whether there's duplicate of target
+                            if i not in nextSource:
                                 nextSource.append(i)
+
+                            # check whether there's duplicate of node
+                            if i not in nodesDict:
                                 nodesDict[i] = (depth, potentialContent)
 
+            # if tracer indicates that program should stop immediately,
+            #   stop with return null
             else:
                 return
 
 
 # Saving output in csv format; ready for most network analysis software
 #   such as Gephi, Cytoscape, UCINET, etc
-# mainSource = list of all source of outlinks
-# mainTarget = list of all outlinks
-# mainDepth  = depth position of the target / outlinks
-# filename    = filename of our outputs
+# edgesDict      = dictionary of all directed edges (or relationship)
+# nodesDict      = dictionary of all nodes and their contents
+# edgesFilename  = .csv filename to save for edgesDict
+# nodesFilename  = .csv filename to save for nodesDict
 def save_files(edgesDict, nodesDict, edgesFilename, nodesFilename):
 
     edgesFile = pd.DataFrame(dict(edgesDict), index=[0]).T.reset_index()
@@ -159,7 +178,7 @@ def save_files(edgesDict, nodesDict, edgesFilename, nodesFilename):
 
 
 # Splitting seed links to n split (depending on # of parallel process)
-#   in equal chunk length
+#   and minimize difference in length between sets using generator
 # seed_list  = list of seeds to be crawled
 # n_split    = number of parallel process
 def split_seeds(seed_list, n_split):
@@ -168,46 +187,6 @@ def split_seeds(seed_list, n_split):
 
     for i in range(0, n_split):
         yield container[i::n_split]
-
-
-# AUXILIARY FUNCTION
-# Word tokenizer to analyze content using NLP. This will return
-#   the composition of the text by word tags as described by NLTK
-#   and also the frequency of that particular word.
-# seed    : source of content
-# content : text content of the seed (or website)
-def word_counter(seed, content):
-
-    columns = ["CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS",
-               "MD", "NN", "NNS", "NNP", "NNPS", "PDT", "POS", "PRP", "PRP$",
-               "RB", "RBR","RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG",
-               "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB"]
-
-    text_dict = dict(FreqDist(pos_tag(word_tokenize(content.lower()))))
-    e = {}
-    for k, v in text_dict.items():
-        e[v] = e.get(v, [])
-        e[v].append(k)
-
-    for i in e.keys():
-        d = defaultdict(list)
-        for v, k in e[i]:
-            d[k].append(v)
-        e[i] = dict(d); del d
-
-    f = pd.DataFrame(e).T.sort_index()
-
-    df = f[f.columns.intersection(columns)]
-    df = df.dropna(how="all")
-    df['index'] = seed
-
-    # break the lists inside DataFrame into text
-    df = df.applymap(lambda x:
-                     x if not isinstance(x, list)
-                     else ';'.join(x) if len(x) else '')
-    df['frequency'] = df.index
-
-    return df
 
 
 def multiprocess_crawling(seedAddress, depth, withinDomain,
@@ -222,6 +201,7 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--mute-audio")
     chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-notifications")
     dirPath = os.path.dirname(os.path.realpath(__file__))
 
     mainManager = mp.Manager()
@@ -263,6 +243,49 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
 
     config.endTime = time.time()
 
+    messagebox.showinfo(message="Your crawl has finished!\n"
+                                f"Elapsed time = "
+                                f"{config.endTime - config.startTime}")
+
+
+# AUXILIARY FUNCTION
+# Word tokenizer to analyze content using NLP. This will return
+#   the composition of the text by word tags as described by NLTK
+#   and also the frequency of that particular word.
+# seed    : source of content
+# content : text content of the seed (or website)
+def word_counter(seed, content):
+
+    columns = ["CC", "CD", "DT", "EX", "FW", "IN", "JJ", "JJR", "JJS", "LS",
+               "MD", "NN", "NNS", "NNP", "NNPS", "PDT", "POS", "PRP", "PRP$",
+               "RB", "RBR","RBS", "RP", "SYM", "TO", "UH", "VB", "VBD", "VBG",
+               "VBN", "VBP", "VBZ", "WDT", "WP", "WP$", "WRB"]
+
+    text_dict = dict(FreqDist(pos_tag(word_tokenize(content.lower()))))
+    e = {}
+    for k, v in text_dict.items():
+        e[v] = e.get(v, [])
+        e[v].append(k)
+
+    for i in e.keys():
+        d = defaultdict(list)
+        for v, k in e[i]:
+            d[k].append(v)
+        e[i] = dict(d); del d
+
+    f = pd.DataFrame(e).T.sort_index()
+
+    df = f[f.columns.intersection(columns)]
+    df = df.dropna(how="all")
+    df['index'] = seed
+
+    # break the lists inside DataFrame into text
+    df = df.applymap(lambda x:
+                     x if not isinstance(x, list)
+                     else ';'.join(x) if len(x) else '')
+    df['frequency'] = df.index
+
+    return df
 
 
 

@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import filedialog
-from tkinter import messagebox
 from webcrawl import *
 import threading
 import sys
@@ -193,20 +192,22 @@ class MainWindow:
         self.nodesFilename = tk.Entry(self.nodes_filename_FRAME)
         self.nodesFilename.pack()
 
-        #self.crawlQuery = []
-
+    # activate the the button to select filter csv file
     def enable_filter_file(self):
         if self.contentFilterStatus.get():
             self.selectFilterButtonn.config(state=tk.NORMAL)
         else:
             self.selectFilterButtonn.config(state=tk.DISABLED)
 
+    # get the address of the csv file containing seed links
     def get_seed_address(self):
         self.seedAddress = filedialog.askopenfilename()
 
+    # get the address of the filter csv file
     def get_filter_address(self):
         self.filterAddress = filedialog.askopenfilename()
 
+    # window to notify when there's missing mandatory input
     def new_window(self):
 
         potentialError = []
@@ -223,15 +224,17 @@ class MainWindow:
             potentialError.append("- Please check 'I agree' checkbox or exit "
                                   "if you wish to expore more about the "
                                   "underlying regulations")
-
+        # if error exists
         if len(potentialError) != 0:
             messagebox.showwarning("Error", message="\n".join(potentialError))
 
+        # if program ready to launch
         else:
             self.executeCrawlingButton.config(state=tk.DISABLED)
             self.newWindow = tk.Toplevel(self.master)
             self.app = RunTheCrawler(self.newWindow, self)
 
+    # getter for user inputs from GUI
     def get_info(self):
 
         return([self.seedAddress,
@@ -246,6 +249,8 @@ class MainWindow:
 
 class RunTheCrawler:
     def __init__(self, master, mainwindow):
+
+        # instantiating user inputs and labels of query profile
         self.master = master
         self.frame = tk.Frame(self.master, height = 400, width = 400)
         self.frame.pack()
@@ -289,6 +294,8 @@ class RunTheCrawler:
         tk.Label(self.frame, text="\nContinue?").grid(
             row=9, column=0, columnspan=3, sticky = tk.N)
 
+        # separate main process and GUI using multi-threading to prevent
+        #   tkinter freezing
         thr = threading.Thread(target=multiprocess_crawling,
                                args=(self.executeSeedAddress,
                                      self.executeDepth,
@@ -298,37 +305,48 @@ class RunTheCrawler:
                                      self.executeNodesFilename,
                                      self.executeFilterAddress))
 
+        # function which will activate upon the pressing of "yes" button
         def run_the_crawl():
             back.config(state=tk.DISABLED)
             exitApp.config(state=tk.NORMAL)
+
+            # set main process thread as daemon thread so that when process
+            #   have to be immediately terminated via GUI input, this thread
+            #   will also be terminated automatically
             thr.daemon = True
 
+            # start the thread
             thr.start()
 
-            messagebox.showinfo(message="Your crawl has finished!\n"
-                                        f"Elapsed time = "
-                                        f"{config.endTime - config.startTime}")
-
+        # button to run the crawl
         run = tk.Button(self.frame, text = "Yes", command = run_the_crawl)
 
         def back_to_master():
             mainwindow.executeCrawlingButton.config(state=tk.NORMAL)
             self.master.destroy()
 
+        # button to go back to previous page (active before running crawl)
         back = tk.Button(self.frame, text = "Back to Previous Window",
                          command = back_to_master)
 
+        # immediately interrupt the thread and terminate the thread
+        #   by notifying the tracer and then kill child processes
         def exit_everything():
 
+            # tracer is used to prevent error in selenium webdriver
             config.stopThis = True
             for job in config.jobs:
                 job.terminate()
             for bot in config.botsList:
                 bot.quit()
 
+            # destroy the window
             self.master.destroy()
+
+            # exit the program
             sys.exit(0)
 
+        # button to stop crawling and terminate all processes
         exitApp = tk.Button(self.frame, text="Stop Everything",
                             command = exit_everything)
         exitApp.config(state = tk.DISABLED)
