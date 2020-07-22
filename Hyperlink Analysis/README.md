@@ -38,16 +38,21 @@ Example on how it looks on Mac:
 
 <br>
 <br>
-**Sample Output: **
 
-Your edge file will look like this:
+**Sample Output:**
+
+Edges file format:
 <br>
 <img src="edgesExample.png" width="564" height="132">
+<br>
 Weight is defined as the number of edges between the two nodes.
 <br>
 <br>
 <br>
+Nodes file format:
+<br>
 <img src="nodesExample.png" width="496" height="116"> 
+<br>
 Depth is defined as the recursive count from the seed node set to the node. 
 <br>
 <br>
