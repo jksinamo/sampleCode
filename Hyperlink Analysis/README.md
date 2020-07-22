@@ -43,3 +43,4 @@ Example on how it looks on Mac:
 - Upload finalized test cases
 - Create a standalone for Mac and Windows
 - Testing it on anti-vaccine online community
+- Migrate from reading html to pytesseract for content extraction
