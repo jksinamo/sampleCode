@@ -113,12 +113,13 @@ def content_is_OK(content, query = None):
 # nextSource   = list of potential targets to be shared between sub-processes
 # filterAddress = File address of the filter file (string)
 def web_crawler(seeds, depth, driver, withinDomain,
-                edgesDict, nodesDict, nextSource, filterAddress = None):
+                edgesDict, nodesDict, nextSource, query):
 
-    # set query to None as default value
-    if filterAddress is not None:
-        with open(filterAddress) as f:
-            query = f.read()
+    # get contents for all initial seed links
+    if depth == 1:
+        for i in seeds:
+            initialContent = get_contents(driver, i)
+            nodesDict[i] = [[0], initialContent]
 
     for seed in seeds:
 
@@ -149,7 +150,9 @@ def web_crawler(seeds, depth, driver, withinDomain,
 
                             # check whether there's duplicate of node
                             if i not in nodesDict:
-                                nodesDict[i] = (depth, potentialContent)
+                                nodesDict[i] = [[depth], potentialContent]
+                            else:
+                                nodesDict[i][0].append(depth)
 
             # if tracer indicates that program should stop immediately,
             #   stop with return null
@@ -214,6 +217,11 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
             options = chrome_options))
 
     trueDepth = depth
+    query = None
+    if filterAddress is not None:
+        with open(filterAddress) as f:
+            query = f.read()
+
     while depth > 0:
 
         manager = mp.Manager()
@@ -224,7 +232,7 @@ def multiprocess_crawling(seedAddress, depth, withinDomain,
             p = Process(target = web_crawler,
                         args = (subList, trueDepth - depth + 1,
                                 bot, withinDomain, edgesDict, nodesDict,
-                                nextSource, filterAddress))
+                                nextSource, query))
             config.jobs.append(p)
             p.start()
 

@@ -53,34 +53,34 @@ class MainWindow:
                                                  bg="ivory", relief=tk.GROOVE,
                                                  borderwidth=3)
 
-        self.welcome_FRAME.grid(column=0, row=0, columnspan=2)
+        self.welcome_FRAME.grid(          column=0, row=0, columnspan=2)
         self.welcome_FRAME.pack_propagate(False)
 
-        self.load_seed_FRAME.grid(column=0, row=1, columnspan=2)
+        self.load_seed_FRAME.grid(        column=0, row=1, columnspan=2)
         self.load_seed_FRAME.pack_propagate(False)
 
-        self.crawling_depth_FRAME.grid(column=0, row=2, columnspan=2)
+        self.crawling_depth_FRAME.grid(   column=0, row=2, columnspan=2)
         self.crawling_depth_FRAME.pack_propagate(False)
 
-        self.filter_type_FRAME.grid(column=0, row=3, columnspan=1)
+        self.filter_type_FRAME.grid(       column=0, row=3, columnspan=1)
         self.filter_type_FRAME.pack_propagate(False)
 
-        self.select_filter_FRAME.grid(column=1, row=3, columnspan=1)
+        self.select_filter_FRAME.grid(     column=1, row=3, columnspan=1)
         self.select_filter_FRAME.pack_propagate(False)
 
-        self.parallel_process_FRAME.grid(column=0, row=5, columnspan=2)
+        self.parallel_process_FRAME.grid( column=0, row=5, columnspan=2)
         self.parallel_process_FRAME.pack_propagate(False)
 
-        self.edges_filename_FRAME.grid(column=0, row=6, columnspan=2)
+        self.edges_filename_FRAME.grid(    column=0, row=6, columnspan=2)
         self.edges_filename_FRAME.pack_propagate(False)
 
-        self.nodes_filename_FRAME.grid(column=0, row=7, columnspan=2)
+        self.nodes_filename_FRAME.grid(    column=0, row=7, columnspan=2)
         self.nodes_filename_FRAME.pack_propagate(False)
 
-        self.disclaimer_FRAME.grid(column=0, row=8, columnspan=2)
+        self.disclaimer_FRAME.grid(       column=0, row=8, columnspan=2)
         self.disclaimer_FRAME.pack_propagate(False)
 
-        self.run_crawl_FRAME.grid(column=0, row=9, columnspan=2)
+        self.run_crawl_FRAME.grid(        column=0, row=9, columnspan=2)
         self.run_crawl_FRAME.pack_propagate(False)
 
         # ---------------------------------------------------------------------
@@ -243,8 +243,8 @@ class MainWindow:
                 bool(self.contentFilterStatus.get()),
                 self.filterAddress,
                 int(self.parallelChoice.get()),
-                str(self.edgesFilename.get() + ".csv"),
-                str(self.nodesFilename.get() + ".csv")])
+                str(self.edgesFilename.get()),
+                str(self.nodesFilename.get())])
 
 
 class RunTheCrawler:
@@ -286,10 +286,10 @@ class RunTheCrawler:
                                   str(self.executeParallelChoice)).grid(
             row=6, column=0, columnspan=3, sticky = tk.W)
         tk.Label(self.frame, text="Edges Filename\t\t: " +
-                                  self.executeEdgesFilename).grid(
+                                  self.executeEdgesFilename + ".csv").grid(
             row=7, column=0, columnspan=3, sticky = tk.W)
         tk.Label(self.frame, text="Nodes Filename\t\t: " +
-                                  self.executeNodesFilename).grid(
+                                  self.executeNodesFilename + ".csv").grid(
             row=8, column=0, columnspan=3, sticky = tk.W)
         tk.Label(self.frame, text="\nContinue?").grid(
             row=9, column=0, columnspan=3, sticky = tk.N)
@@ -309,6 +309,7 @@ class RunTheCrawler:
         def run_the_crawl():
             back.config(state=tk.DISABLED)
             exitApp.config(state=tk.NORMAL)
+            run.config(state=tk.DISABLED)
 
             # set main process thread as daemon thread so that when process
             #   have to be immediately terminated via GUI input, this thread
@@ -347,12 +348,12 @@ class RunTheCrawler:
             sys.exit(0)
 
         # button to stop crawling and terminate all processes
-        exitApp = tk.Button(self.frame, text="Stop Everything",
+        exitApp = tk.Button(self.frame, text="Terminate Everything",
                             command = exit_everything)
         exitApp.config(state = tk.DISABLED)
 
         run.grid(     row = 10, column = 0)
-        back.grid(  row = 10, column = 1)
+        back.grid(    row = 10, column = 1)
         exitApp.grid( row = 10, column = 2)
 
 
