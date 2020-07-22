@@ -38,16 +38,23 @@ Example on how it looks on Mac:
 
 <br>
 <br>
-**Sample Output:**
+**Sample Output: **
+
 Your edge file will look like this:
-
+<br>
 <img src="edgesExample.png" width="564" height="132">
-<figcaption>Weight is defined as the number of edges between the two nodes</figcaption>
-
+Weight is defined as the number of edges between the two nodes.
+<br>
+<br>
+<br>
 <img src="nodesExample.png" width="496" height="116"> 
-Weight is defined as the number of edges between the two nodesdepth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) depending on your needs. 
-
-Both files will contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
+Depth is defined as the recursive count from the seed node set to the node. 
+<br>
+<br>
+<br>
+If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) depending on your needs. 
+<br>
+Both files will also contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
 <br>
 <br>
 **Disclaimer:** This is NOT the entirity of a kit needed for hyperlink analysis, rather a crawler to fetch an appropriate set of data for calculations of hyperlink analysis. Such kit for calculations of network centralities and measurements are available via NetworkX package in Python which accept the output resulted from my code. Also, I'm experimenting on using outlinks only and compensating it by enabling crawling for virtually unlimited number of steps (depending on time and # of CPU you have). There are similar tool availabe via web interface at issuecrawler.net or Voson Uberlink, however they're limited to at most 4 steps crawling (from the initial seed links).
