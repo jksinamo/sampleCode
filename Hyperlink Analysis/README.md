@@ -40,8 +40,12 @@ Example on how it looks on Mac:
 <br>
 **Sample Output:**
 Your edge file will look like this:
-<img src="edgesExample.png">weight is defined as the number of edges between the two nodes
-<img src="nodesExample.png"> depth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) depending on your needs. 
+
+<img src="edgesExample.png" width="564" height="132">
+<figcaption>Weight is defined as the number of edges between the two nodes</figcaption>
+
+<img src="nodesExample.png" width="496" height="116"> 
+Weight is defined as the number of edges between the two nodesdepth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) depending on your needs. 
 
 Both files will contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
 <br>
