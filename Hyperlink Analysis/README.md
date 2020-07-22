@@ -53,11 +53,9 @@ Nodes file format:
 <br>
 <img src="nodesExample.png" width="496" height="116"> 
 <br>
-Depth is defined as the recursive count from the seed node set to the node. 
+Depth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) as a whole or in each recursive step depending on your needs. 
 <br>
 <br>
-<br>
-If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) depending on your needs. 
 <br>
 Both files will also contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
 <br>
