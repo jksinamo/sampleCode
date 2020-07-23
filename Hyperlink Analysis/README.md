@@ -34,19 +34,12 @@ When the aforementioned information boxes have been filled and the check-box for
 <br>
 <img src="review.png" width="716" height="306" align = "center">
 <br>
-Press "yes" to execute the crawl, or if you're unsure of the profile, press "back to previous window". If you need to kill the crawling process immediately after running the crawl, press "stop everything" (button will be enabled after crawl is executed).
+Press "yes" to execute the crawl, or if you're unsure of the profile, press "back to previous window". There will be a number of chrome windows pop up (depending on your desired # of process) which will exit on their own when crawl is finished. If you need to kill the crawling process prematurely, press "stop everything" (button will be enabled after crawl is executed).
 
-
-## Example on how it looks on Mac
-<br>
-![alt text](webcrawl.gif)
-
-<br>
-<br>
 
 ## Sample Output
 
-### Edges file format
+###### Edges file format
 <br>
 <img src="edgesExample.png" width="564" height="132">
 <br>
@@ -54,7 +47,7 @@ Weight is defined as the number of edges between the two nodes.
 <br>
 <br>
 <br>
-### Nodes file format
+###### Nodes file format
 <br>
 <img src="nodesExample.png" width="496" height="116"> 
 <br>
