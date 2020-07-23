@@ -39,14 +39,14 @@ Press "yes" to execute the crawl, or if you're unsure of the profile, press "bac
 
 ## Example on how it looks on Mac
 <br>
-![](webcrawl.gif)
+![alt text](webcrawl.gif)
 
 <br>
 <br>
 
 ## Sample Output
 
-Edges file format:
+### Edges file format
 <br>
 <img src="edgesExample.png" width="564" height="132">
 <br>
@@ -54,15 +54,15 @@ Weight is defined as the number of edges between the two nodes.
 <br>
 <br>
 <br>
-Nodes file format:
+### Nodes file format
 <br>
 <img src="nodesExample.png" width="496" height="116"> 
 <br>
-Depth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) as a whole or in each recursive step depending on your needs. 
+* Depth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) as a whole or in each recursive step depending on your needs. 
 <br>
 <br>
 <br>
-Both files will also contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
+* Both files will also contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
 <br>
 <br>
 ## Disclaimer
