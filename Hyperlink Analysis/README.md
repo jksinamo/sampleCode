@@ -39,16 +39,15 @@ Press "yes" to execute the crawl, or if you're unsure of the profile, press "bac
 
 ## Sample Output
 
-###### Edges file format
-<br>
+#### Edges file format
 <img src="edgesExample.png" width="564" height="132">
 <br>
 Weight is defined as the number of edges between the two nodes.
 <br>
 <br>
 <br>
-###### Nodes file format
-<br>
+
+#### Nodes file format
 <img src="nodesExample.png" width="496" height="116"> 
 <br>
 * Depth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) as a whole or in each recursive step depending on your needs. 
