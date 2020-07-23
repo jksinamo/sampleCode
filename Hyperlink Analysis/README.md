@@ -2,16 +2,17 @@
 <br>
 This is a tool to crawl links and grab contents recursively. The project was inspired from the emerging field of social network analysis in network science. WebCrawler is an initiative to tackle current unavailability of free highly customizable tool to fetch data for hyperlink analysis. The parts of this program can be used independently; if you are familiar with CLI, then running multiprocess_crawling() from terminal works the same as GUI. The latter was made to help potential users who aren't familiar with python. 
 
-**Status:** OK
+## Status
+OK
 
-**How to easily run this?** 
+## How to easily run this?
 - Download the zip of the entire repo
 - Make sure you have chrome browser in your computer and four chromedrivers to the version of your chrome browser, I have included them in the folder (if your chrome browser is ver. 83, you don't need to download them). Other versions available at:https://chromedriver.chromium.org/. You can download one and duplicate/copy-paste them 4 times and rename them chromedrivers1 .... chromedrivers4 and put it in the Hyperlink Analysis folder you downloaded from this repo
 - Open terminal / command prompt and browse into the Hyperlink Analysis folder
 - type: python MainWindow.py 
 - A window for the app will appear, you can try few settings for webcrawling. Enjoy! 
 
-**Overview**
+## Overview
 
 <img src="mainwindow.png" width="350" height="465" align = "right">
 
@@ -36,14 +37,14 @@ When the aforementioned information boxes have been filled and the check-box for
 Press "yes" to execute the crawl, or if you're unsure of the profile, press "back to previous window". If you need to kill the crawling process immediately after running the crawl, press "stop everything" (button will be enabled after crawl is executed).
 
 
-Example on how it looks on Mac:
+## Example on how it looks on Mac
 <br>
 ![](webcrawl.gif)
 
 <br>
 <br>
 
-**Sample Output:**
+## Sample Output
 
 Edges file format:
 <br>
@@ -64,10 +65,11 @@ Depth is defined as the recursive count from the seed node set to the node. If t
 Both files will also contain errors found during crawl (if any) so that users can analyze the potential biases in their dataset
 <br>
 <br>
-**Disclaimer:** This is NOT the entirity of a kit needed for hyperlink analysis, rather a crawler to fetch an appropriate set of data for calculations of hyperlink analysis. Such kit for calculations of network centralities and measurements are available via NetworkX package in Python which accept the output resulted from my code. Also, I'm experimenting on using outlinks only and compensating it by enabling crawling for virtually unlimited number of steps (depending on time and # of CPU you have). There are similar tool availabe via web interface at issuecrawler.net or Voson Uberlink, however they're limited to at most 4 steps crawling (from the initial seed links).
+## Disclaimer
+This is NOT the entirity of a kit needed for hyperlink analysis, rather a crawler to fetch an appropriate set of data for calculations of hyperlink analysis. Such kit for calculations of network centralities and measurements are available via NetworkX package in Python which accept the output resulted from my code. Also, I'm experimenting on using outlinks only and compensating it by enabling crawling for virtually unlimited number of steps (depending on time and # of CPU you have). There are similar tool availabe via web interface at issuecrawler.net or Voson Uberlink, however they're limited to at most 4 steps crawling (from the initial seed links).
 
 
-**What's next :**
+## What's next 
 - Upload finalized test cases
 - Create a standalone for Mac and Windows
 - Testing it on anti-vaccine online community
