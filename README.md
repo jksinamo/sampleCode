@@ -12,7 +12,7 @@ MAC           | [zip file for mac](https://github.com/jksinamo/sampleCode/releas
 WINDOWS       | [zip file for win](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl.v.1-84-win.zip)
 
 3. Unzip the file 
-4. Further instruction is available at Hyperlink Analysis folder
+4. Further instruction is available [here](https://github.com/jksinamo/sampleCode/blob/experimental/Hyperlink%20Analysis/README.md)
 
 ### Status: OK
 
