@@ -40,7 +40,7 @@ Press "yes" to execute the crawl, or if you're unsure of the profile, press "bac
 ## Sample Output
 
 #### Edges file format
-<img src="edgesExample.png" width="564" height="132">
+<img src="other/edgesExample.png" width="564" height="132">
 <br>
 Weight is defined as the number of edges between the two nodes.
 <br>
