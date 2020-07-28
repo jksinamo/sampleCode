@@ -14,7 +14,7 @@ OK
 
 ## Overview
 
-<img src="mainwindow.png" width="350" height="465" align = "right">
+<img src="other/mainwindow.png" width="350" height="465" align = "right">
 
 - "Load your seed file": press the button to browse your seed file
   - Seed file must be in csv format 
@@ -32,7 +32,7 @@ OK
 
 When the aforementioned information boxes have been filled and the check-box for disclaimer has been selected, press the "run the crawl" button. You will see this window upon pressing the button:
 <br>
-<img src="review.png" width="716" height="306" align = "center">
+<img src="other/review.png" width="716" height="306" align = "center">
 <br>
 Press "yes" to execute the crawl, or if you're unsure of the profile, press "back to previous window". There will be a number of chrome windows pop up (depending on your desired # of process) which will exit on their own when crawl is finished. If you need to kill the crawling process prematurely, press "stop everything" (button will be enabled after crawl is executed).
 
@@ -47,7 +47,7 @@ Weight is defined as the number of edges between the two nodes.
 <br>
 
 #### Nodes file format
-<img src="nodesExample.png" width="496" height="116"> 
+<img src="other/nodesExample.png" width="496" height="116"> 
 <br>
 
 * Depth is defined as the recursive count from the seed node set to the node. If there are duplicates of integers in the list, it means that the node was found multiple times in that particular depth. The length of this list can be converted as the weight of that node (or the number of in-links of that node) as a whole or in each recursive step depending on your needs. 
