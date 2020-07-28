@@ -4,7 +4,7 @@ These are compilations of my code in both R and Python. More will be added to th
 
 ### Hyperlink Analysis: Python implementation of recursive web-crawling and scraping
 1. Before running the app, please check and/or update your chrome version (ver 84)
-2. Go to: https://github.com/jksinamo/sampleCode/releases/tag/v.1.0 
+2. Click one of the link below depending on your OS
 
 OS            | Link
 ------------- | -------------
