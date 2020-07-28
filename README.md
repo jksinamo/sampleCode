@@ -21,7 +21,9 @@ WINDOWS       | [zip file for win](https://github.com/jksinamo/sampleCode/releas
 - Compile into executable for a standalone app
 - Different versions for the app
 
-## Short sample usage in anti-vaccine online community : please access "antivax" folder
+## Short sample usage in anti-vaccine online community 
+Please access "antivax" folder
 
-## Rasch Experiment   : Reproducible appendix of model comparison in R 
+## Rasch Experiment
+Reproducible appendix of model comparison in R 
 
