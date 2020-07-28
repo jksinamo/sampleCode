@@ -2,7 +2,7 @@
 
 These are compilations of my code in both R and Python. More will be added to the repo as necessary. 
 
-## Hyperlink Analysis: Python implementation of recursive web-crawling and scraping
+### Hyperlink Analysis: Python implementation of recursive web-crawling and scraping
 1. Before running the app, please check and/or update your chrome version (ver 84)
 2. Click one of the link below to download the source code
 
@@ -14,16 +14,16 @@ WINDOWS       | [zip file for win](https://github.com/jksinamo/sampleCode/releas
 3. Unzip the file 
 4. Further instruction is available [here](https://github.com/jksinamo/sampleCode/blob/experimental/Hyperlink%20Analysis/README.md)
 
-### Status: OK
+##### Status: OK
 
-### TODO:
+##### TODO:
 - Add more testing instances for the app
 - Compile into executable for a standalone app
 - Different versions for the app
 
-## Short sample usage in anti-vaccine online community 
+### Short sample usage in anti-vaccine online community 
 Please access "antivax" folder
 
-## Rasch Experiment
+### Rasch Experiment
 Reproducible appendix of model comparison in R 
 
