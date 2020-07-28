@@ -1,6 +1,10 @@
 # WebCrawler
 <br>
-This is a tool to crawl links and grab contents recursively. WebCrawler utilizes [test](http://research.oregonstate.edu/) without PPS (in the future, I will add PPS to the sampling process) meaning that it will crawl ALL the links in accordance to your settings in each recursive step. The project was inspired from the emerging field of social network analysis in network science. WebCrawler is an initiative to tackle current unavailability of free highly customizable tool to fetch data for hyperlink analysis. The parts of this program can be used independently; if you are familiar with CLI, then running multiprocess_crawling() from terminal works the same as GUI. The latter was made to help potential users who aren't familiar with python. 
+This is a tool to crawl links and grab contents recursively. WebCrawler utilizes 
+
+[test](http://research.oregonstate.edu/) 
+
+without PPS (in the future, I will add PPS to the sampling process) meaning that it will crawl ALL the links in accordance to your settings in each recursive step. The project was inspired from the emerging field of social network analysis in network science. WebCrawler is an initiative to tackle current unavailability of free highly customizable tool to fetch data for hyperlink analysis. The parts of this program can be used independently; if you are familiar with CLI, then running multiprocess_crawling() from terminal works the same as GUI. The latter was made to help potential users who aren't familiar with python. 
 
 ## Status
 OK
