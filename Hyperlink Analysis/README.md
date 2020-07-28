@@ -10,7 +10,7 @@ OK
 - Unzip the zip file
 - Open terminal / command prompt and browse into the unzipped folder
 - Install required packages -> run this in your shell : pip install -r requirements.txt
-- Now, run : python MainWindow.py 
+- Then, run : python MainWindow.py 
 - A window for the app will appear, you can try few settings for webcrawling. Enjoy! 
 
 ## Overview
