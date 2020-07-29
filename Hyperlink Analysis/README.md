@@ -7,7 +7,7 @@ This is a tool to crawl links and grab contents recursively. WebCrawler utilizes
 OK
 
 ## How to easily run this?
-- Download the zip from [main page](https://github.com/jksinamo/sampleCode/)
+- Download the zip from [main page](https://github.com/jksinamo/sampleCode/#samplecode)
 - Unzip the zip file
 - Open terminal / command prompt and browse into the unzipped folder
 - Install required packages -> run this in your shell : pip install -r requirements.txt
