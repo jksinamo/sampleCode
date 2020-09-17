@@ -27,7 +27,7 @@ OK
     - Sample query 1 (in your csv file): ('test' and 'bool') or 'boolean' 
     - Sample query 2 (in your csv file): 'what' and 'is' or 'this' 
     - Sample query 3 (in your csv file): 'might as well get a sentence' and 'is' or 'this' 
-- Number of concurrent crawling : Technically, it can be set to 100, however for the purpose of this testing stage, limit is set to 4. The avaiability will depend on your machine.
+- Number of concurrent crawling : Technically, it can be set to 100, however for the purpose of this testing stage, limit is set to 4. The availability will depend on your machine.
 - Edges filename : filename of your edges file
 - Nodes filename : filename of your nodes file
    
