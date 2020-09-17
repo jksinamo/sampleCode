@@ -8,7 +8,7 @@ These are compilations of my code in both R and Python. More will be added to th
 
 OS            | Link
 ------------- | -------------
-MAC           | [zip file for mac](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl_v2-85_mac.zip)
+MAC           | [zip file for mac](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl_v2_85_mac.zip)
 WINDOWS       | [zip file for win](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl_v2-85_win.zip)
 
 3. Unzip the file 
