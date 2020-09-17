@@ -8,8 +8,8 @@ These are compilations of my code in both R and Python. More will be added to th
 
 OS            | Link
 ------------- | -------------
-MAC           | [zip file for mac](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl.v.1-84-mac.zip)
-WINDOWS       | [zip file for win](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl.v.1-84-win.zip)
+MAC           | [zip file for mac](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl_v.1-84-mac.zip)
+WINDOWS       | [zip file for win](https://github.com/jksinamo/sampleCode/releases/download/v.1.0/WebCrawl_v.1-84-win.zip)
 
 3. Unzip the file 
 4. Further instruction is available [here](https://github.com/jksinamo/sampleCode/blob/experimental/Hyperlink%20Analysis/README.md#webcrawler)
