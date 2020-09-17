@@ -13,6 +13,7 @@ OK
 - Install required packages -> run this in your shell : pip install -r requirements.txt
 - Then, run : python MainWindow.py 
 - A window for the app will appear, you can try few settings for webcrawling. Enjoy! 
+- Please access your security settings in your computer and allow chromedriver to be opened if you have not used it before
 
 ## Overview
 
